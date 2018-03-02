@@ -5,6 +5,7 @@ class TestClass(object):
     def test_account_creation(self):
         alice = Account()
         assert alice.identity_keys()
+        assert len(alice.identity_keys()) == 2
 
     def test_account_pickle(self):
         alice = Account()
@@ -21,4 +22,18 @@ class TestClass(object):
 
     def test_one_time_keys(self):
         alice = Account()
-        assert alice.identity_keys()
+        alice.generate_one_time_keys(10)
+        one_time_keys = alice.one_time_keys()
+        assert one_time_keys
+        assert len(one_time_keys["curve25519"]) == 10
+
+    def test_max_one_time_keys(self):
+        alice = Account()
+        assert type(alice.max_one_time_keys()) is int
+
+    def test_clear(self):
+        alice = Account()
+        alice.clear()
+
+        assert not alice._account
+        assert not alice._buf
