@@ -14,10 +14,10 @@ test: develop
 	$(PYTHON) -m pytest --isort
 
 clean:
-	-rm -r python_olm.egg-info/ dist __pycache__
+	-rm -r python_olm.egg-info/ dist/ __pycache__/
 	-rm *.so _libolm.o
-	-rm -r packages
-	-rm -r build
+	-rm -r packages/
+	-rm -r build/
 
 develop: _libolm.o
 
