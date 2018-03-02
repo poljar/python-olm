@@ -1,0 +1,39 @@
+# $Id$
+# Maintainer: Damir Jelić <poljar@termina.org.uk>
+
+pkgbase=python-olm
+pkgname=('python-olm' 'python2-olm')
+pkgver=2.2
+pkgrel=1
+pkgdesc='python bindings for the olm cryptographic ratchet library'
+arch=('any')
+url='https://matrix.org/git/olm/'
+license=('Apache')
+makedepends=('python-setuptools' 'python2-setuptools' 'python2-cffi')
+checkdepends=()
+source=("$pkgbase-$pkgver.tar.gz")
+sha512sums=('SKIP')
+
+prepare() {
+  cd "$srcdir"
+  cp -a $pkgbase-$pkgver{,-py2}
+}
+
+build() {
+  make -C "$srcdir"/$pkgbase-$pkgver
+  make PYTHON=python2 -C "$srcdir"/$pkgbase-$pkgver-py2
+}
+
+package_python-olm() {
+  depends=('libolm' 'python-cffi')
+  cd "$srcdir"/$pkgbase-$pkgver
+
+  make DESTDIR="$pkgdir" install
+}
+
+package_python2-olm() {
+  depends=('libolm' 'python2-cffi')
+
+  cd "$srcdir"/$pkgbase-$pkgver-py2
+  make PYTHON=python2 DESTDIR="$pkgdir" install
+}
