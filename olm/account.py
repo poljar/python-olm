@@ -18,11 +18,13 @@ Examples:
 
 from __future__ import unicode_literals
 
+import json
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes
-from typing import Dict, Tuple, Optional
+from typing import Dict, Optional, Tuple
 
-import json
+# pylint: disable=no-name-in-module
+from _libolm import ffi, lib
 
 try:
     import secrets
@@ -30,9 +32,6 @@ try:
 except ImportError:
     from os import urandom
     _URANDOM = urandom
-
-# pylint: disable=no-name-in-module
-from _libolm import ffi, lib
 
 
 class OlmAccountError(Exception):
