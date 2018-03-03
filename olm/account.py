@@ -105,8 +105,9 @@ class Account(object):
         pickle_length = lib.olm_pickle_account_length(self._account)
         pickle_buffer = ffi.new("char[]", pickle_length)
 
-        lib.olm_pickle_account(self._account, key_buffer, len(byte_key),
-                               pickle_buffer, pickle_length)
+        self._check_error(
+            lib.olm_pickle_account(self._account, key_buffer, len(byte_key),
+                                   pickle_buffer, pickle_length))
         return ffi.unpack(pickle_buffer, pickle_length)
 
     @classmethod
