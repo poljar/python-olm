@@ -41,6 +41,7 @@ class Account(object):
     """libolm Account class."""
 
     def __init__(self, buf=None, account=None):
+        # type: (ffi.cdata, ffi.cdata) -> None
         """Create a new olm account.
 
         The contructor creates a new identity key pair unless the arguments buf
@@ -51,7 +52,6 @@ class Account(object):
         for the account creation the error message for the exception will be
         NOT_ENOUGH_RANDOM.
         """
-        # type: (ffi.cdata, ffi.cdata) -> None
         if buf and account:
             self._buf = buf
             self._account = account
@@ -239,7 +239,7 @@ class Account(object):
         self._buf = None
 
     def __del__(self):
-        """Delete the account."""
         # type: () -> None
+        """Delete the account."""
         if self._account:
             self.clear()
