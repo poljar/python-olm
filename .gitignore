@@ -6,3 +6,5 @@ packages/
 python_olm.egg-info/
 _libolm*
 __pycache__
+*.pyc
+.hypothesis/
