@@ -1,3 +1,5 @@
+from builtins import int
+
 import pytest
 
 from olm.account import Account, OlmAccountError
@@ -39,7 +41,7 @@ class TestClass(object):
 
     def test_max_one_time_keys(self):
         alice = Account()
-        assert type(alice.max_one_time_keys()) is int
+        assert isinstance(alice.max_one_time_keys(), int)
 
     def test_clear(self):
         alice = Account()
