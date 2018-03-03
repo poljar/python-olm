@@ -166,13 +166,14 @@ class Account(object):
         Args:
             message(str): The message to sign.
         """
+        bytes_message = bytes(message, "utf-8")
         out_length = lib.olm_account_signature_length(self._account)
-        message_buffer = ffi.new("char[]", message)
+        message_buffer = ffi.new("char[]", bytes_message)
         out_buffer = ffi.new("char[]", out_length)
 
         self._check_error(
-            lib.olm_account_sign(self._account, message_buffer, len(message),
-                                 out_buffer, out_length))
+            lib.olm_account_sign(self._account, message_buffer,
+                                 len(bytes_message), out_buffer, out_length))
 
         return ffi.unpack(out_buffer, out_length)
 
