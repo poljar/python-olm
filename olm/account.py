@@ -2,7 +2,7 @@
 # libolm python bindings
 # Copyright © 2015-2017 OpenMarket Ltd
 # Copyright © 2018 Damir Jelić <poljar@termina.org.uk>
-"""libolm Account module
+"""libolm Account module.
 
 This module contains the account part of the olm library. It contains a single
 Account class which handles the creation of new accounts as well as the storing
@@ -12,6 +12,7 @@ Examples:
     acc = Account()
     account.identity_keys()
     account.generate_one_time_keys(1)
+
 """
 
 from __future__ import unicode_literals
@@ -33,20 +34,23 @@ except ImportError:
 
 
 class OlmAccountError(Exception):
-    """libolm Account error exception"""
-    pass
+    """libolm Account error exception."""
 
 
 class Account(object):
-    """libolm Account class
-
-    Creates a new olm account and generates a new identity key pair.
-    Raises OlmAccountError on failure. If there weren't enough random bytes
-    for the account creation the error message for the exception will be
-    NOT_ENOUGH_RANDOM
-    """
+    """libolm Account class."""
 
     def __init__(self, buf=None, account=None):
+        """Create a new olm account.
+
+        The contructor creates a new identity key pair unless the arguments buf
+        and account are provided. The arguments should never be provided by the
+        user, use from_pickle instead.
+
+        Raises OlmAccountError on failure. If there weren't enough random bytes
+        for the account creation the error message for the exception will be
+        NOT_ENOUGH_RANDOM.
+        """
         # type: (ffi.cdata, ffi.cdata) -> None
         if buf and account:
             self._buf = buf
@@ -113,8 +117,7 @@ class Account(object):
     @classmethod
     def from_pickle(cls, pickle, passphrase=""):
         # type: (bytes, Optional[str]) -> Account
-        """
-        Load an previously stored olm account.
+        """Load an previously stored olm account.
 
         Loads an account from a pickled base64 string and returns an Account
         object. Decrypts the account using the supplied passphrase. Raises
@@ -179,7 +182,7 @@ class Account(object):
 
     def max_one_time_keys(self):
         # type: () -> int
-        """Get the maximum number of one time keys the account can store"""
+        """Get the maximum number of one time keys the account can store."""
         return lib.olm_account_max_number_of_one_time_keys(self._account)
 
     def mark_keys_as_published(self):
@@ -189,7 +192,7 @@ class Account(object):
 
     def generate_one_time_keys(self, count):
         # type: (int) -> None
-        """Generates a number of new one time keys.
+        """Generate a number of new one time keys.
 
         If the total number of keys stored by this account exceeds
         max_one_time_keys() then the old keys are discarded.
@@ -226,7 +229,7 @@ class Account(object):
 
     def clear(self):
         # type: () -> None
-        """Clears the memory used to back this account
+        """Clear the memory used to back this account.
 
         After clearing the account the account state is invalid and can't be
         reused. This method is called in the deconstructor of this class.
@@ -236,6 +239,7 @@ class Account(object):
         self._buf = None
 
     def __del__(self):
+        """Delete the account."""
         # type: () -> None
         if self._account:
             self.clear()
