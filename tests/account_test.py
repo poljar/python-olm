@@ -1,4 +1,5 @@
-from olm.account import Account
+import pytest
+from olm.account import Account, OlmAccountError
 
 
 class TestClass(object):
@@ -19,6 +20,14 @@ class TestClass(object):
         pickle = alice.pickle(passphrase)
         assert (alice.identity_keys() ==
                 Account.from_pickle(pickle, passphrase).identity_keys())
+
+    def test_wrong_passphrase_pickle(self):
+        alice = Account()
+        passphrase = "It's a secret to everybody"
+        pickle = alice.pickle(passphrase)
+
+        with pytest.raises(OlmAccountError):
+            Account.from_pickle(pickle, "")
 
     def test_one_time_keys(self):
         alice = Account()
