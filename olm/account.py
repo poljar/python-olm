@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 # libolm python bindings
-
 # Copyright © 2015-2017 OpenMarket Ltd
 # Copyright © 2018 Damir Jelić <poljar@termina.org.uk>
-
 """libolm Account module
 
 This module contains the account part of the olm library. It contains a single
@@ -47,6 +45,7 @@ class Account(object):
     for the account creation the error message for the exception will be
     NOT_ENOUGH_RANDOM
     """
+
     def __init__(self, buf=None, account=None):
         # type: (ffi.cdata, ffi.cdata) -> None
         if buf and account:
@@ -62,6 +61,7 @@ class Account(object):
         # type: () -> Tuple[ffi.cdata, ffi.cdata]
         buf = ffi.new("char[]", lib.olm_account_size())
         account = lib.olm_account(buf)
+
         return buf, account
 
     def _create(self):
@@ -85,8 +85,7 @@ class Account(object):
             return
 
         raise OlmAccountError("{}".format(
-            ffi.string(lib.olm_account_last_error(
-                account)).decode("utf-8")))
+            ffi.string(lib.olm_account_last_error(account)).decode("utf-8")))
 
     def pickle(self, passphrase=""):
         # type: (Optional[str]) -> bytes
@@ -106,10 +105,8 @@ class Account(object):
         pickle_length = lib.olm_pickle_account_length(self._account)
         pickle_buffer = ffi.new("char[]", pickle_length)
 
-        lib.olm_pickle_account(
-            self._account, key_buffer, len(byte_key), pickle_buffer,
-            pickle_length
-        )
+        lib.olm_pickle_account(self._account, key_buffer, len(byte_key),
+                               pickle_buffer, pickle_length)
         return ffi.unpack(pickle_buffer, pickle_length)
 
     @classmethod
@@ -172,9 +169,9 @@ class Account(object):
         message_buffer = ffi.new("char[]", message)
         out_buffer = ffi.new("char[]", out_length)
 
-        self._check_error(lib.olm_account_sign(
-            self._account, message_buffer, len(message), out_buffer, out_length
-        ))
+        self._check_error(
+            lib.olm_account_sign(self._account, message_buffer, len(message),
+                                 out_buffer, out_length))
 
         return ffi.unpack(out_buffer, out_length)
 
@@ -202,13 +199,12 @@ class Account(object):
             count(int): The number of keys to generate.
         """
         random_length = lib.olm_account_generate_one_time_keys_random_length(
-            self._account, count
-        )
+            self._account, count)
         random = _URANDOM(random_length)
         random_buffer = ffi.new("char[]", random)
-        self._check_error(lib.olm_account_generate_one_time_keys(
-            self._account, count, random_buffer, random_length
-        ))
+        self._check_error(
+            lib.olm_account_generate_one_time_keys(
+                self._account, count, random_buffer, random_length))
 
     def one_time_keys(self):
         # type: () -> Dict[str, Dict[str, str]]
@@ -219,9 +215,10 @@ class Account(object):
         """
         out_length = lib.olm_account_one_time_keys_length(self._account)
         out_buffer = ffi.new("char[]", out_length)
+
         self._check_error(
-            lib.olm_account_one_time_keys(self._account,
-                                          out_buffer, out_length))
+            lib.olm_account_one_time_keys(self._account, out_buffer,
+                                          out_length))
 
         return json.loads(ffi.unpack(out_buffer, out_length))
 
