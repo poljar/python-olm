@@ -53,8 +53,8 @@ class Utility(object):
             return
 
         raise OlmVerifyError("{}".format(
-            ffi.string(
-                lib.olm_utility_last_error(cls._utility)).decode("utf-8")))
+            ffi.string(lib.olm_utility_last_error(
+                cls._utility)).decode("utf-8")))
 
     @classmethod
     def ed25519_verify(cls, key, message, signature):
@@ -73,8 +73,6 @@ class Utility(object):
         byte_message = bytes(message, "utf-8")
 
         cls._check_error(
-            lib.olm_ed25519_verify(cls._utility,
-                                   byte_key, len(byte_key),
-                                   byte_message, len(byte_message),
-                                   signature, len(signature))
-        )
+            lib.olm_ed25519_verify(cls._utility, byte_key, len(byte_key),
+                                   byte_message, len(byte_message), signature,
+                                   len(signature)))
