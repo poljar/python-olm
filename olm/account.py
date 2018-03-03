@@ -156,7 +156,7 @@ class Account(object):
         return json.loads(ffi.unpack(out_buffer, out_length))
 
     def sign(self, message):
-        # type: (bytes) -> bytes
+        # type: (str) -> bytes
         """Signs a message with this account.
 
         Signs a message with the private ed25519 identity key of this account.
@@ -164,7 +164,7 @@ class Account(object):
         Raises OlmAccountError on failure.
 
         Args:
-            message(bytes): The message to sign.
+            message(str): The message to sign.
         """
         out_length = lib.olm_account_signature_length(self._account)
         message_buffer = ffi.new("char[]", message)
