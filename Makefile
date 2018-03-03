@@ -12,6 +12,7 @@ test: develop
 	$(PYTHON) -m pytest
 	$(PYTHON) -m pytest --flake8
 	$(PYTHON) -m pytest --isort
+	$(PYTHON) -m pytest --cov
 
 clean:
 	-rm -r python_olm.egg-info/ dist/ __pycache__/
