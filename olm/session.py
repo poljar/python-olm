@@ -222,7 +222,7 @@ class InboundSession(Session):
                 self._session,
                 account._account,
                 identity_key_buffer, len(identity_key),
-                message_buffer, len(message)
+                message_buffer, len(message.ciphertext)
             ))
         else:
             self._check_error(lib.olm_create_inbound_session(
