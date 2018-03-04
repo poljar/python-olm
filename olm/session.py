@@ -53,7 +53,7 @@ class _OlmMessage():
         }
 
         prefix = type_to_prefix[self.message_type]
-        return b"{} {}".format(prefix, self.ciphertext)
+        return "{} {}".format(prefix, self.ciphertext)
 
 
 class OlmPreKeyMessage(_OlmMessage):
