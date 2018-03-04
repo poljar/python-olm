@@ -21,6 +21,7 @@ from __future__ import unicode_literals
 
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes
+from olm.account import Account
 from typing import Dict, Optional, Tuple
 
 # pylint: disable=no-name-in-module
@@ -40,11 +41,12 @@ class OlmSessionError(Exception):
 
 class _OlmMessage():
     def __init__(self, ciphertext, message_type):
-        # type: (str, ffi.cdata) -> None
+        # type: (bytes, ffi.cdata) -> None
         self.ciphertext = ciphertext
         self.message_type = message_type
 
     def __str__(self):
+        # type: () -> str
         type_to_prefix = {
             lib.OLM_MESSAGE_TYPE_PRE_KEY: b"PRE_KEY",
             lib.OLM_MESSAGE_TYPE_MESSAGE: b"MESSAGE"
@@ -56,17 +58,21 @@ class _OlmMessage():
 
 class OlmPreKeyMessage(_OlmMessage):
     def __init__(self, ciphertext):
+        # type: (bytes) -> None
         _OlmMessage.__init__(self, ciphertext, lib.OLM_MESSAGE_TYPE_PRE_KEY)
 
     def __repr__(self):
+        # type: () -> str
         return "OlmPreKeyMessage({})".format(self.ciphertext)
 
 
 class OlmMessage(_OlmMessage):
     def __init__(self, ciphertext):
+        # type: (bytes) -> None
         _OlmMessage.__init__(self, ciphertext, lib.OLM_MESSAGE_TYPE_MESSAGE)
 
     def __repr__(self):
+        # type: () -> str
         return "OlmMessage({})".format(self.ciphertext)
 
 
@@ -140,6 +146,7 @@ class Session():
         return session
 
     def encrypt(self, plaintext):
+        # type: (str) -> _OlmMessage
         byte_plaintext = bytes(plaintext, "utf-8")
         r_length = lib.olm_encrypt_random_length(self._session)
         random = _URANDOM(r_length)
@@ -206,7 +213,7 @@ class Session():
 
 class InboundSession(Session):
     def __init__(self, account, message, identity_key=None):
-        # type: (ffi.cdata, ffi.cdata) -> None
+        # type: (Account, _OlmMessage, Optional[str]) -> None
         """Create a new inbound olm session.
 
         Raises OlmSessionError on failure. If there weren't enough random bytes
@@ -234,7 +241,7 @@ class InboundSession(Session):
 
 class OutboundSession(Session):
     def __init__(self, account, identity_key, one_time_key):
-        # type: (olm.Account, str, str) -> None
+        # type: (Account, str, str) -> None
         """Create a new outbound olm session.
 
         Raises OlmSessionError on failure. If there weren't enough random bytes
