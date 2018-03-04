@@ -2,7 +2,7 @@
 # libolm python bindings
 # Copyright © 2015-2017 OpenMarket Ltd
 # Copyright © 2018 Damir Jelić <poljar@termina.org.uk>
-"""libolm Account module.
+"""libolm Session module.
 
 This module contains the olm session part of the olm library.
 
