@@ -224,11 +224,12 @@ class InboundSession(Session):
         message_buffer = ffi.new("char[]", message.ciphertext)
 
         if identity_key:
-            identity_key_buffer = ffi.new("char[]", identity_key)
+            byte_id_key = bytes(identity_key, "utf-8")
+            identity_key_buffer = ffi.new("char[]", byte_id_key)
             self._check_error(lib.olm_create_inbound_session_from(
                 self._session,
                 account._account,
-                identity_key_buffer, len(identity_key),
+                identity_key_buffer, len(byte_id_key),
                 message_buffer, len(message.ciphertext)
             ))
         else:
