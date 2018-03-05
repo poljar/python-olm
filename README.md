@@ -1,8 +1,7 @@
 python-olm  
 ==========
 
-.. image:: https://travis-ci.org/poljar/python-olm.svg?branch=master
-  :target: https://travis-ci.org/poljar/python-olm
+[![Travis Build Status](https://travis-ci.org/poljar/python-olm.svg?branch=master)](https://travis-ci.org/poljar/python-olm)
 
 Python bindings for libolm.
 
