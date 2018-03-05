@@ -68,3 +68,28 @@ class TestClass(object):
                 "OlmMessage({})".format(bob_message.ciphertext))
 
         assert bob_plaintext == session.decrypt(bob_message)
+
+    def test_matches(self):
+        plaintext = "It's a secret to everybody"
+        alice, bob, session = self._create_session()
+        message = session.encrypt(plaintext)
+        alice_id = alice.identity_keys()["curve25519"]
+        bob_session = InboundSession(bob, message, alice_id)
+        assert plaintext == bob_session.decrypt(message)
+
+        message_2nd = session.encrypt("Hey! Listen!")
+
+        assert bob_session.matches(message_2nd) is True
+        assert bob_session.matches(message_2nd, alice_id) is True
+
+    def test_doesnt_match(self):
+        plaintext = "It's a secret to everybody"
+        alice, bob, session = self._create_session()
+        message = session.encrypt(plaintext)
+        alice_id = alice.identity_keys()["curve25519"]
+        bob_session = InboundSession(bob, message, alice_id)
+
+        _, _, new_session = self._create_session()
+
+        new_message = new_session.encrypt(plaintext)
+        assert bob_session.matches(new_message) is False
