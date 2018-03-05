@@ -156,7 +156,7 @@ class Account(object):
         self._check_error(
             lib.olm_account_identity_keys(self._account, out_buffer,
                                           out_length))
-        return json.loads(ffi.unpack(out_buffer, out_length))
+        return json.loads(ffi.unpack(out_buffer, out_length).decode("utf-8"))
 
     def sign(self, message):
         # type: (str) -> bytes
@@ -225,7 +225,7 @@ class Account(object):
             lib.olm_account_one_time_keys(self._account, out_buffer,
                                           out_length))
 
-        return json.loads(ffi.unpack(out_buffer, out_length))
+        return json.loads(ffi.unpack(out_buffer, out_length).decode("utf-8"))
 
     def clear(self):
         # type: () -> None
