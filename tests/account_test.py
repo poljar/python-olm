@@ -45,6 +45,17 @@ class TestClass(object):
         alice = Account()
         assert isinstance(alice.max_one_time_keys(), int)
 
+    def test_publish_one_time_keys(self):
+        alice = Account()
+        alice.generate_one_time_keys(10)
+        one_time_keys = alice.one_time_keys()
+
+        assert one_time_keys
+        assert len(one_time_keys["curve25519"]) == 10
+
+        alice.mark_keys_as_published()
+        assert not alice.one_time_keys()["curve25519"]
+
     def test_clear(self):
         alice = Account()
         alice.clear()
