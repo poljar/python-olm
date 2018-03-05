@@ -197,6 +197,16 @@ class Session():
         self._check_error(plaintext_length)
         return ffi.unpack(plaintext_buffer, plaintext_length).decode("utf-8")
 
+    def id(self):
+        # type () -> str
+        id_length = lib.olm_session_id_length(self._session)
+        id_buffer = ffi.new("char[]", id_length)
+
+        self._check_error(
+            lib.olm_session_id(self._session, id_buffer, id_length)
+        )
+        return ffi.unpack(id_buffer, id_length).decode("utf-8")
+
     def clear(self):
         # type: () -> None
         """Clear the memory used to back this session.
