@@ -7,7 +7,7 @@ class TestClass(object):
         alice = Account()
         bob = Account()
         bob.generate_one_time_keys(1)
-        id_key = bob.identity_keys()['curve25519']
+        id_key = bob.identity_keys()["curve25519"]
         one_time = list(bob.one_time_keys()["curve25519"].values())[0]
         session = OutboundSession(alice, id_key, one_time)
         return alice, bob, session
@@ -23,5 +23,12 @@ class TestClass(object):
         plaintext = "It's a secret to everybody"
         alice, bob, session = self._create_session()
         message = session.encrypt(plaintext)
+
+        assert (repr(message) ==
+                "OlmPreKeyMessage({})".format(message.ciphertext))
+
+        assert (str(message) ==
+                "PRE_KEY {}".format(message.ciphertext.decode("utf-8")))
+
         bob_session = InboundSession(bob, message)
         assert plaintext == bob_session.decrypt(message)
