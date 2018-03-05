@@ -32,3 +32,27 @@ class TestClass(object):
 
         bob_session = InboundSession(bob, message)
         assert plaintext == bob_session.decrypt(message)
+
+    def test_inbound_with_id(self):
+        plaintext = "It's a secret to everybody"
+        alice, bob, session = self._create_session()
+        message = session.encrypt(plaintext)
+        alice_id = alice.identity_keys()["curve25519"]
+        bob_session = InboundSession(bob, message, alice_id)
+        assert plaintext == bob_session.decrypt(message)
+
+    def test_two_messages(self):
+        plaintext = "It's a secret to everybody"
+        alice, bob, session = self._create_session()
+        message = session.encrypt(plaintext)
+        alice_id = alice.identity_keys()["curve25519"]
+        bob_session = InboundSession(bob, message, alice_id)
+        assert plaintext == bob_session.decrypt(message)
+
+        bob_plaintext = "Grumble, Grumble"
+        bob_message = bob_session.encrypt(bob_plaintext)
+
+        assert (repr(bob_message) ==
+                "OlmMessage({})".format(bob_message.ciphertext))
+
+        assert bob_plaintext == session.decrypt(bob_message)
