@@ -1,5 +1,7 @@
+import pytest
 from olm.account import Account
-from olm.session import InboundSession, OutboundSession, Session
+from olm.session import (InboundSession, OlmSessionError, OutboundSession,
+                         Session)
 
 
 class TestClass(object):
@@ -18,6 +20,14 @@ class TestClass(object):
     def test_session_pickle(self):
         alice, bob, session = self._create_session()
         Session.from_pickle(session.pickle())
+
+    def test_wrong_passphrase_pickle(self):
+        alice, bob, session = self._create_session()
+        passphrase = "It's a secret to everybody"
+        pickle = alice.pickle(passphrase)
+
+        with pytest.raises(OlmSessionError):
+            Session.from_pickle(pickle, "")
 
     def test_encrypt(self):
         plaintext = "It's a secret to everybody"
