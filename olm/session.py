@@ -48,12 +48,12 @@ class _OlmMessage():
     def __str__(self):
         # type: () -> str
         type_to_prefix = {
-            lib.OLM_MESSAGE_TYPE_PRE_KEY: b"PRE_KEY",
-            lib.OLM_MESSAGE_TYPE_MESSAGE: b"MESSAGE"
+            lib.OLM_MESSAGE_TYPE_PRE_KEY: "PRE_KEY",
+            lib.OLM_MESSAGE_TYPE_MESSAGE: "MESSAGE"
         }
 
         prefix = type_to_prefix[self.message_type]
-        return "{} {}".format(prefix, self.ciphertext)
+        return "{} {}".format(prefix, self.ciphertext.decode("utf-8"))
 
 
 class OlmPreKeyMessage(_OlmMessage):
