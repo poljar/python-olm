@@ -26,7 +26,7 @@ from __future__ import unicode_literals
 from builtins import bytes
 
 # pylint: disable=no-name-in-module
-from _libolm import ffi, lib
+from _libolm import ffi, lib  # type: ignore
 
 
 class OlmVerifyError(Exception):

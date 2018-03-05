@@ -21,18 +21,18 @@ from __future__ import unicode_literals
 
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes
-from olm.account import Account
 from typing import Dict, Optional, Tuple
 
 # pylint: disable=no-name-in-module
-from _libolm import ffi, lib
+from _libolm import ffi, lib  # type: ignore
+from olm.account import Account
 
 try:
     import secrets
     _URANDOM = secrets.token_bytes
 except ImportError:
     from os import urandom
-    _URANDOM = urandom
+    _URANDOM = urandom  # type: ignore
 
 
 class OlmSessionError(Exception):

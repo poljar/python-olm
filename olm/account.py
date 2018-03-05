@@ -23,14 +23,14 @@ from builtins import bytes
 from typing import Dict, Optional, Tuple
 
 # pylint: disable=no-name-in-module
-from _libolm import ffi, lib
+from _libolm import ffi, lib  # type: ignore
 
 try:
     import secrets
     _URANDOM = secrets.token_bytes
 except ImportError:
     from os import urandom
-    _URANDOM = urandom
+    _URANDOM = urandom  # type: ignore
 
 
 class OlmAccountError(Exception):
