@@ -177,7 +177,7 @@ class Session():
         elif message_type == lib.OLM_MESSAGE_TYPE_MESSAGE:
             return OlmMessage(ffi.unpack(ciphertext_buffer,
                                          ciphertext_length))
-        else:
+        else:  # pragma: no cover
             raise ValueError
 
     def decrypt(self, message):
