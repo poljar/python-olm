@@ -154,6 +154,9 @@ class Session():
         random_buffer = ffi.new("char[]", random)
 
         message_type = lib.olm_encrypt_message_type(self._session)
+
+        self._check_error(message_type)
+
         ciphertext_length = lib.olm_encrypt_message_length(
             self._session, len(plaintext)
         )
