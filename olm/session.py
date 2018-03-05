@@ -23,14 +23,15 @@ from __future__ import unicode_literals
 from builtins import bytes
 from typing import Dict, Optional, Tuple
 
+from olm.account import Account
+
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
-from olm.account import Account
 
 try:
     import secrets
     _URANDOM = secrets.token_bytes
-except ImportError:
+except ImportError:  # pragma: no cover
     from os import urandom
     _URANDOM = urandom  # type: ignore
 
