@@ -15,11 +15,13 @@ class TestClass(object):
         return alice, bob, session
 
     def test_session_create(self):
-        self._create_session()
+        _, _, session_1 = self._create_session()
+        _, _, session_2 = self._create_session()
+        session_1.id() != session_2.id()
 
     def test_session_pickle(self):
         alice, bob, session = self._create_session()
-        Session.from_pickle(session.pickle())
+        Session.from_pickle(session.pickle()).id() == session.id()
 
     def test_wrong_passphrase_pickle(self):
         alice, bob, session = self._create_session()
