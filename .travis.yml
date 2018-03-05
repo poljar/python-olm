@@ -1,6 +1,6 @@
 sudo: false
 before_install:
-    - https://matrix.org/git/olm/snapshot/olm-2.2.0.tar.bz2
+    - wget https://matrix.org/git/olm/snapshot/olm-2.2.0.tar.bz2
     - tar -xvf olm-2.2.0.tar.bz2
     - pusdh olm-2.2.0 && make && make PREFIX="/usr/" install && popd
 language: python
