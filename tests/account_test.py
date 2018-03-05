@@ -3,7 +3,6 @@ from builtins import int
 import pytest
 from hypothesis import given
 from hypothesis.strategies import text
-
 from olm.account import Account, OlmAccountError
 from olm.utility import OlmVerifyError, Utility
 
