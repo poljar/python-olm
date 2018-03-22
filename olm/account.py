@@ -159,7 +159,7 @@ class Account(object):
         return json.loads(ffi.unpack(out_buffer, out_length).decode("utf-8"))
 
     def sign(self, message):
-        # type: (str) -> bytes
+        # type: (str) -> str
         """Signs a message with this account.
 
         Signs a message with the private ed25519 identity key of this account.
@@ -178,7 +178,7 @@ class Account(object):
             lib.olm_account_sign(self._account, message_buffer,
                                  len(bytes_message), out_buffer, out_length))
 
-        return ffi.unpack(out_buffer, out_length)
+        return ffi.unpack(out_buffer, out_length).decode("utf-8")
 
     def max_one_time_keys(self):
         # type: () -> int

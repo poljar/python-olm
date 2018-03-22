@@ -71,8 +71,9 @@ class Utility(object):
 
         byte_key = bytes(key, "utf-8")
         byte_message = bytes(message, "utf-8")
+        byte_signature = bytes(signature, "utf-8")
 
         cls._check_error(
             lib.olm_ed25519_verify(cls._utility, byte_key, len(byte_key),
-                                   byte_message, len(byte_message), signature,
-                                   len(signature)))
+                                   byte_message, len(byte_message),
+                                   byte_signature, len(byte_signature)))
