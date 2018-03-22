@@ -237,9 +237,3 @@ class Account(object):
         lib.olm_clear_account(self._account)
         self._account = None
         self._buf = None
-
-    def __del__(self):
-        # type: () -> None
-        """Delete the account."""
-        if self._account:
-            self.clear()
