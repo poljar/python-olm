@@ -24,11 +24,11 @@ clean:
 develop: _libolm.o
 py2develop: _libolm.so
 
-_libolm.so:
+_libolm.so: olm.h olm_build.py
 	python2 olm_build.py
 	-rm _libolm.c
 
-_libolm.o:
+_libolm.o: olm.h olm_build.py
 	python3 olm_build.py
 	-rm _libolm.c
 
