@@ -29,6 +29,8 @@ ffibuilder.set_source(
     "_libolm",
     r"""
         #include <olm/olm.h>
+        #include <olm/inbound_group_session.h>
+        #include <olm/outbound_group_session.h>
     """, libraries=["olm"])
 
 with open(os.path.join(PATH, "olm.h")) as f:
