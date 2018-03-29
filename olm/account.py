@@ -227,6 +227,18 @@ class Account(object):
 
         return json.loads(ffi.unpack(out_buffer, out_length).decode("utf-8"))
 
+    def remove_one_time_keys(self, session):
+        # type: () -> None
+        """Remove used one time keys.
+
+        Removes the one time keys that the session used from the account.
+        Raises OlmAccountError on failure. If the account doesn't have any
+        matching one time keys then the error message of the exception will be
+        "BAD_MESSAGE_KEY_ID".
+        """
+        self._check_error(lib.olm_remove_one_time_keys(self._account,
+                                                       session._session))
+
     def clear(self):
         # type: () -> None
         """Clear the memory used to back this account.
