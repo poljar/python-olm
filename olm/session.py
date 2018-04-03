@@ -42,7 +42,7 @@ class OlmSessionError(Exception):
 
 class _OlmMessage():
     def __init__(self, ciphertext, message_type):
-        # type: (bytes, ffi.cdata) -> None
+        # type: (str, ffi.cdata) -> None
         self.ciphertext = ciphertext
         self.message_type = message_type
 
@@ -54,12 +54,12 @@ class _OlmMessage():
         }
 
         prefix = type_to_prefix[self.message_type]
-        return "{} {}".format(prefix, self.ciphertext.decode("utf-8"))
+        return "{} {}".format(prefix, self.ciphertext)
 
 
 class OlmPreKeyMessage(_OlmMessage):
     def __init__(self, ciphertext):
-        # type: (bytes) -> None
+        # type: (str) -> None
         _OlmMessage.__init__(self, ciphertext, lib.OLM_MESSAGE_TYPE_PRE_KEY)
 
     def __repr__(self):
@@ -69,7 +69,7 @@ class OlmPreKeyMessage(_OlmMessage):
 
 class OlmMessage(_OlmMessage):
     def __init__(self, ciphertext):
-        # type: (bytes) -> None
+        # type: (str) -> None
         _OlmMessage.__init__(self, ciphertext, lib.OLM_MESSAGE_TYPE_MESSAGE)
 
     def __repr__(self):
@@ -172,27 +172,30 @@ class Session():
         ))
 
         if message_type == lib.OLM_MESSAGE_TYPE_PRE_KEY:
-            return OlmPreKeyMessage(ffi.unpack(ciphertext_buffer,
-                                               ciphertext_length))
+            return OlmPreKeyMessage(
+                ffi.unpack(ciphertext_buffer,
+                           ciphertext_length).decode("utf-8"))
         elif message_type == lib.OLM_MESSAGE_TYPE_MESSAGE:
-            return OlmMessage(ffi.unpack(ciphertext_buffer,
-                                         ciphertext_length))
+            return OlmMessage(
+                ffi.unpack(ciphertext_buffer,
+                           ciphertext_length).decode("utf-8"))
         else:  # pragma: no cover
             raise ValueError
 
     def decrypt(self, message):
         # type: (_OlmMessage) -> str
-        ciphertext_buffer = ffi.new("char[]", message.ciphertext)
+        byte_ciphertext = bytes(message.ciphertext, "utf-8")
+        ciphertext_buffer = ffi.new("char[]", byte_ciphertext)
 
         max_plaintext_length = lib.olm_decrypt_max_plaintext_length(
             self._session, message.message_type, ciphertext_buffer,
             len(message.ciphertext)
         )
         plaintext_buffer = ffi.new("char[]", max_plaintext_length)
-        ciphertext_buffer = ffi.new("char[]", message.ciphertext)
+        ciphertext_buffer = ffi.new("char[]", byte_ciphertext)
         plaintext_length = lib.olm_decrypt(
             self._session, message.message_type, ciphertext_buffer,
-            len(message.ciphertext), plaintext_buffer, max_plaintext_length
+            len(byte_ciphertext), plaintext_buffer, max_plaintext_length
         )
         self._check_error(plaintext_length)
         return ffi.unpack(plaintext_buffer, plaintext_length).decode("utf-8")
@@ -235,7 +238,7 @@ class InboundSession(Session):
         NOT_ENOUGH_RANDOM.
         """
         Session.__init__(self)
-        message_buffer = ffi.new("char[]", message.ciphertext)
+        message_buffer = ffi.new("char[]", bytes(message.ciphertext, "utf-8"))
 
         if identity_key:
             byte_id_key = bytes(identity_key, "utf-8")
@@ -256,7 +259,8 @@ class InboundSession(Session):
     def matches(self, message, identity_key=None):
         # type: (_OlmMessage, Optional[str]) -> bool
         ret = None
-        message_buffer = ffi.new("char[]", message.ciphertext)
+        byte_ciphertext = bytes(message.ciphertext, "utf-8")
+        message_buffer = ffi.new("char[]", byte_ciphertext)
 
         if identity_key:
             byte_id_key = bytes(identity_key, "utf-8")
@@ -265,7 +269,7 @@ class InboundSession(Session):
             ret = lib.olm_matches_inbound_session_from(
                 self._session,
                 identity_key_buffer, len(byte_id_key),
-                message_buffer, len(message.ciphertext)
+                message_buffer, len(byte_ciphertext)
             )
 
         else:

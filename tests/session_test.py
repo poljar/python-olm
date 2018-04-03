@@ -40,7 +40,7 @@ class TestClass(object):
                 "OlmPreKeyMessage({})".format(message.ciphertext))
 
         assert (str(message) ==
-                "PRE_KEY {}".format(message.ciphertext.decode("utf-8")))
+                "PRE_KEY {}".format(message.ciphertext))
 
         bob_session = InboundSession(bob, message)
         assert plaintext == bob_session.decrypt(message)
