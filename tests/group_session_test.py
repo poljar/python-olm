@@ -11,6 +11,11 @@ class TestClass(object):
         session = OutboundGroupSession()
         assert isinstance(session.id, str)
 
+    def test_session_index(self):
+        session = OutboundGroupSession()
+        assert isinstance(session.message_index, int)
+        assert session.message_index == 0
+
     def test_outbound_pickle(self):
         session = OutboundGroupSession()
         pickle = session.pickle()
