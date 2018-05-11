@@ -210,6 +210,31 @@ class Session():
         )
         return ffi.unpack(id_buffer, id_length).decode("utf-8")
 
+    def matches(self, message, identity_key=None):
+        # type: (_OlmMessage, Optional[str]) -> bool
+        ret = None
+        byte_ciphertext = bytes(message.ciphertext, "utf-8")
+        message_buffer = ffi.new("char[]", byte_ciphertext)
+
+        if identity_key:
+            byte_id_key = bytes(identity_key, "utf-8")
+            identity_key_buffer = ffi.new("char[]", byte_id_key)
+
+            ret = lib.olm_matches_inbound_session_from(
+                self._session,
+                identity_key_buffer, len(byte_id_key),
+                message_buffer, len(byte_ciphertext)
+            )
+
+        else:
+            ret = lib.olm_matches_inbound_session(
+                self._session,
+                message_buffer, len(message.ciphertext))
+
+        self._check_error(ret)
+
+        return bool(ret)
+
     def clear(self):
         # type: () -> None
         """Clear the memory used to back this session.
@@ -255,31 +280,6 @@ class InboundSession(Session):
                 account._account,
                 message_buffer, len(message.ciphertext)
             ))
-
-    def matches(self, message, identity_key=None):
-        # type: (_OlmMessage, Optional[str]) -> bool
-        ret = None
-        byte_ciphertext = bytes(message.ciphertext, "utf-8")
-        message_buffer = ffi.new("char[]", byte_ciphertext)
-
-        if identity_key:
-            byte_id_key = bytes(identity_key, "utf-8")
-            identity_key_buffer = ffi.new("char[]", byte_id_key)
-
-            ret = lib.olm_matches_inbound_session_from(
-                self._session,
-                identity_key_buffer, len(byte_id_key),
-                message_buffer, len(byte_ciphertext)
-            )
-
-        else:
-            ret = lib.olm_matches_inbound_session(
-                self._session,
-                message_buffer, len(message.ciphertext))
-
-        self._check_error(ret)
-
-        return bool(ret)
 
 
 class OutboundSession(Session):
