@@ -12,7 +12,14 @@ This package implements python bindings for the libolm C library.
 """
 from .utility import ed25519_verify, OlmVerifyError
 from .account import Account, OlmAccountError
-from .session import Session, InboundSession, OutboundSession, OlmSessionError
+from .session import (
+    Session,
+    InboundSession,
+    OutboundSession,
+    OlmSessionError,
+    OlmMessage,
+    OlmPreKeyMessage
+)
 from .group_session import (
     InboundGroupSession,
     OutboundGroupSession,
