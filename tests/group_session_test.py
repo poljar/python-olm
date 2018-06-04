@@ -43,7 +43,14 @@ class TestClass(object):
         )
         assert "Test" == imported.decrypt(outbound.encrypt("Test"))
 
-    def test_encrypt(self):
+    def test_encrypt(self, benchmark):
+        benchmark.weave(OutboundGroupSession.encrypt, lazy=True)
+        outbound = OutboundGroupSession()
+        inbound = InboundGroupSession(outbound.session_key)
+        assert "Test" == inbound.decrypt(outbound.encrypt("Test"))
+
+    def test_decrypt(self, benchmark):
+        benchmark.weave(InboundGroupSession.decrypt, lazy=True)
         outbound = OutboundGroupSession()
         inbound = InboundGroupSession(outbound.session_key)
         assert "Test" == inbound.decrypt(outbound.encrypt("Test"))
