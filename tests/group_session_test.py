@@ -1,8 +1,7 @@
 from builtins import str
 
 import pytest
-from olm.group_session import (InboundGroupSession, OlmGroupSessionError,
-                               OutboundGroupSession)
+from olm import InboundGroupSession, OlmGroupSessionError, OutboundGroupSession
 
 
 class TestClass(object):

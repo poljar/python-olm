@@ -3,8 +3,7 @@ from builtins import int
 import pytest
 from hypothesis import given
 from hypothesis.strategies import text
-from olm.account import Account, OlmAccountError
-from olm.utility import OlmVerifyError, Utility
+from olm import Account, OlmAccountError, OlmVerifyError, ed25519_verify
 
 
 class TestClass(object):
@@ -73,7 +72,7 @@ class TestClass(object):
         assert signature
         assert signing_key
 
-        Utility.ed25519_verify(signing_key, message, signature)
+        ed25519_verify(signing_key, message, signature)
 
     @given(text())
     def test_invalid_signature(self, message):
@@ -87,4 +86,4 @@ class TestClass(object):
         assert signing_key
 
         with pytest.raises(OlmVerifyError):
-            Utility.ed25519_verify(signing_key, message, signature)
+            ed25519_verify(signing_key, message, signature)

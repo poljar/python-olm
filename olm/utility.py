@@ -77,3 +77,7 @@ class Utility(object):
             lib.olm_ed25519_verify(cls._utility, byte_key, len(byte_key),
                                    byte_message, len(byte_message),
                                    byte_signature, len(byte_signature)))
+
+
+def ed25519_verify(key, message, signature):
+    return Utility.ed25519_verify(key, message, signature)

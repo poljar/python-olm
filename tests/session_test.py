@@ -1,7 +1,6 @@
 import pytest
-from olm.account import Account
-from olm.session import (InboundSession, OlmSessionError, OutboundSession,
-                         Session)
+from olm import (Account, InboundSession, OlmSessionError, OutboundSession,
+                 Session)
 
 
 class TestClass(object):
