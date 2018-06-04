@@ -69,3 +69,10 @@ class TestClass(object):
     def test_inbound_fail(self):
         with pytest.raises(ValueError):
             InboundGroupSession()
+
+    def test_oubtound_pickle_fail(self):
+        outbound = OutboundGroupSession()
+        pickle = outbound.pickle("Test")
+
+        with pytest.raises(OlmGroupSessionError):
+            OutboundGroupSession.from_pickle(pickle)
