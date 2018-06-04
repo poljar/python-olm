@@ -19,7 +19,7 @@ from __future__ import unicode_literals
 
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes
-from typing import Dict, Optional, Tuple
+from typing import *
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
@@ -38,7 +38,7 @@ class OlmGroupSessionError(Exception):
 
 class InboundGroupSession(object):
     def __init__(self, session_key=None, _buf=None, _session=None):
-        # type: (str) -> None
+        # type: (str, ffi.cdata, ffi.cdata) -> None
         """Create a new inbound group session.
 
         Raises OlmGroupSessionError on failure. If there weren't enough random
@@ -49,6 +49,10 @@ class InboundGroupSession(object):
             self._buf = _buf
             self._session = _session
             return
+
+        if not session_key:
+            raise ValueError("Can't initialize a new inbound group session "
+                             "without a session key")
 
         self._buf, self._session = InboundGroupSession._allocate()
 
@@ -69,7 +73,7 @@ class InboundGroupSession(object):
 
     def pickle(self, passphrase=""):
         # type: (Optional[str]) -> bytes
-        byte_passphrase = bytes(passphrase, "utf-8")
+        byte_passphrase = bytes(passphrase, "utf-8") if passphrase else b""
 
         passphrase_buffer = ffi.new("char[]", byte_passphrase)
         pickle_length = lib.olm_pickle_inbound_group_session_length(
@@ -86,7 +90,7 @@ class InboundGroupSession(object):
     @classmethod
     def from_pickle(cls, pickle, passphrase=""):
         # type: (bytes, Optional[str]) -> InboundGroupSession
-        byte_passphrase = bytes(passphrase, "utf-8")
+        byte_passphrase = bytes(passphrase, "utf-8") if passphrase else b""
         passphrase_buffer = ffi.new("char[]", byte_passphrase)
         pickle_buffer = ffi.new("char[]", pickle)
 
@@ -120,7 +124,7 @@ class InboundGroupSession(object):
         InboundGroupSession._check_error_buf(self._session, ret)
 
     def decrypt(self, ciphertext):
-        #type: (str) -> str
+        # type: (str) -> str
         byte_ciphertext = bytes(ciphertext, "utf-8")
         ciphertext_buffer = ffi.new("char[]", byte_ciphertext)
 
@@ -170,7 +174,7 @@ class InboundGroupSession(object):
 
 class OutboundGroupSession(object):
     def __init__(self, _buf=None, _session=None):
-        # type: () -> None
+        # type: (ffi.cdata, ffi.cdata) -> None
         """Create a new inbound group session.
 
         Raises OlmGroupSessionError on failure. If there weren't enough random
@@ -204,7 +208,7 @@ class OutboundGroupSession(object):
 
     def pickle(self, passphrase=""):
         # type: (Optional[str]) -> bytes
-        byte_passphrase = bytes(passphrase, "utf-8")
+        byte_passphrase = bytes(passphrase, "utf-8") if passphrase else b""
         passphrase_buffer = ffi.new("char[]", byte_passphrase)
         pickle_length = lib.olm_pickle_outbound_group_session_length(
             self._session)
@@ -219,7 +223,7 @@ class OutboundGroupSession(object):
     @classmethod
     def from_pickle(cls, pickle, passphrase=""):
         # type: (bytes, Optional[str]) -> OutboundGroupSession
-        byte_passphrase = bytes(passphrase, "utf-8")
+        byte_passphrase = bytes(passphrase, "utf-8") if passphrase else b""
         passphrase_buffer = ffi.new("char[]", byte_passphrase)
         pickle_buffer = ffi.new("char[]", pickle)
 

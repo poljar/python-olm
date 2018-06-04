@@ -22,6 +22,10 @@ import json
 from builtins import bytes
 from typing import Dict, Optional, Tuple
 
+# This is imported only for type checking purposes
+if False:
+    from .session import Session
+
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
 
@@ -103,7 +107,7 @@ class Account(object):
         Args:
             passphrase(str): The passphrase to be used to encrypt the account.
         """
-        byte_key = bytes(passphrase, "utf-8")
+        byte_key = bytes(passphrase, "utf-8") if passphrase else b""
         key_buffer = ffi.new("char[]", byte_key)
 
         pickle_length = lib.olm_pickle_account_length(self._account)
@@ -131,7 +135,7 @@ class Account(object):
             pickle(bytes): Base64 encoded byte string containing the pickled
                            account
         """
-        byte_key = bytes(passphrase, "utf-8")
+        byte_key = bytes(passphrase, "utf-8") if passphrase else b""
         key_buffer = ffi.new("char[]", byte_key)
         pickle_buffer = ffi.new("char[]", pickle)
 
@@ -228,7 +232,7 @@ class Account(object):
         return json.loads(ffi.unpack(out_buffer, out_length).decode("utf-8"))
 
     def remove_one_time_keys(self, session):
-        # type: () -> None
+        # type: (Session) -> None
         """Remove used one time keys.
 
         Removes the one time keys that the session used from the account.
