@@ -20,7 +20,7 @@ Examples:
 from __future__ import unicode_literals
 
 # pylint: disable=redefined-builtin,unused-import
-from builtins import bytes, str
+from builtins import bytes
 from typing import Dict, Optional, Tuple
 
 # pylint: disable=no-name-in-module
