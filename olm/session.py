@@ -108,7 +108,7 @@ class Session():
         Args:
             passphrase(str): The passphrase to be used to encrypt the session.
         """
-        byte_key = bytes(passphrase, "utf-8")
+        byte_key = bytes(passphrase, "utf-8") if passphrase else b""
         key_buffer = ffi.new("char[]", byte_key)
 
         pickle_length = lib.olm_pickle_session_length(self._session)
@@ -136,7 +136,7 @@ class Session():
             pickle(bytes): Base64 encoded byte string containing the pickled
                            session
         """
-        byte_key = bytes(passphrase, "utf-8")
+        byte_key = bytes(passphrase, "utf-8") if passphrase else b""
         key_buffer = ffi.new("char[]", byte_key)
         pickle_buffer = ffi.new("char[]", pickle)
 
@@ -183,7 +183,7 @@ class Session():
                 ffi.unpack(ciphertext_buffer,
                            ciphertext_length).decode("utf-8"))
         else:  # pragma: no cover
-            raise ValueError
+            raise ValueError("Unknown message type")
 
     def decrypt(self, message):
         # type: (_OlmMessage) -> str
