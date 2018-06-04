@@ -3,7 +3,7 @@
 
 pkgbase=python-olm
 pkgname=('python-olm' 'python2-olm')
-pkgver=2.2
+pkgver=0.1
 pkgrel=1
 pkgdesc='python bindings for the olm cryptographic ratchet library'
 arch=('any')
