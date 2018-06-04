@@ -23,12 +23,13 @@ from __future__ import unicode_literals
 from builtins import bytes, str
 from typing import Dict, Optional, Tuple
 
+# pylint: disable=no-name-in-module
+from _libolm import ffi, lib  # type: ignore
+
 # This is imported only for type checking purposes
 if False:
     from .account import Account
 
-# pylint: disable=no-name-in-module
-from _libolm import ffi, lib  # type: ignore
 
 try:
     import secrets
