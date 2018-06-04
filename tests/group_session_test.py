@@ -65,3 +65,7 @@ class TestClass(object):
         outbound = OutboundGroupSession()
         inbound = InboundGroupSession(outbound.session_key)
         assert outbound.id == inbound.id
+
+    def test_inbound_fail(self):
+        with pytest.raises(ValueError):
+            InboundGroupSession()
