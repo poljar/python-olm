@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 __title__ = "python-olm"
 __description__ = ("python CFFI bindings for the olm "
                    "cryptographic ratchet library")
