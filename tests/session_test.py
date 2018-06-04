@@ -8,19 +8,19 @@ class TestClass(object):
         alice = Account()
         bob = Account()
         bob.generate_one_time_keys(1)
-        id_key = bob.identity_keys()["curve25519"]
-        one_time = list(bob.one_time_keys()["curve25519"].values())[0]
+        id_key = bob.identity_keys["curve25519"]
+        one_time = list(bob.one_time_keys["curve25519"].values())[0]
         session = OutboundSession(alice, id_key, one_time)
         return alice, bob, session
 
     def test_session_create(self):
         _, _, session_1 = self._create_session()
         _, _, session_2 = self._create_session()
-        session_1.id() != session_2.id()
+        session_1.id != session_2.id
 
     def test_session_pickle(self):
         alice, bob, session = self._create_session()
-        Session.from_pickle(session.pickle()).id() == session.id()
+        Session.from_pickle(session.pickle()).id == session.id
 
     def test_wrong_passphrase_pickle(self):
         alice, bob, session = self._create_session()
@@ -48,7 +48,7 @@ class TestClass(object):
         plaintext = "It's a secret to everybody"
         alice, bob, session = self._create_session()
         message = session.encrypt(plaintext)
-        alice_id = alice.identity_keys()["curve25519"]
+        alice_id = alice.identity_keys["curve25519"]
         bob_session = InboundSession(bob, message, alice_id)
         assert plaintext == bob_session.decrypt(message)
 
@@ -56,7 +56,7 @@ class TestClass(object):
         plaintext = "It's a secret to everybody"
         alice, bob, session = self._create_session()
         message = session.encrypt(plaintext)
-        alice_id = alice.identity_keys()["curve25519"]
+        alice_id = alice.identity_keys["curve25519"]
         bob_session = InboundSession(bob, message, alice_id)
         bob.remove_one_time_keys(bob_session)
         assert plaintext == bob_session.decrypt(message)
@@ -73,7 +73,7 @@ class TestClass(object):
         plaintext = "It's a secret to everybody"
         alice, bob, session = self._create_session()
         message = session.encrypt(plaintext)
-        alice_id = alice.identity_keys()["curve25519"]
+        alice_id = alice.identity_keys["curve25519"]
         bob_session = InboundSession(bob, message, alice_id)
         assert plaintext == bob_session.decrypt(message)
 
@@ -86,7 +86,7 @@ class TestClass(object):
         plaintext = "It's a secret to everybody"
         alice, bob, session = self._create_session()
         message = session.encrypt(plaintext)
-        alice_id = alice.identity_keys()["curve25519"]
+        alice_id = alice.identity_keys["curve25519"]
         bob_session = InboundSession(bob, message, alice_id)
 
         _, _, new_session = self._create_session()

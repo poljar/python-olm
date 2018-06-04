@@ -148,6 +148,7 @@ class Account(object):
 
         return cls(buf, account)
 
+    @property
     def identity_keys(self):
         # type: () -> Dict[str, str]
         """Get the public identity keys of the account.
@@ -185,6 +186,7 @@ class Account(object):
 
         return ffi.unpack(out_buffer, out_length).decode("utf-8")
 
+    @property
     def max_one_time_keys(self):
         # type: () -> int
         """Get the maximum number of one time keys the account can store."""
@@ -216,6 +218,7 @@ class Account(object):
             lib.olm_account_generate_one_time_keys(
                 self._account, count, random_buffer, random_length))
 
+    @property
     def one_time_keys(self):
         # type: () -> Dict[str, Dict[str, str]]
         """Get the public one time keys of the account.

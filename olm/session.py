@@ -203,6 +203,7 @@ class Session():
         self._check_error(plaintext_length)
         return ffi.unpack(plaintext_buffer, plaintext_length).decode("utf-8")
 
+    @property
     def id(self):
         # type () -> str
         id_length = lib.olm_session_id_length(self._session)

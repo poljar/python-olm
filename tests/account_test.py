@@ -9,21 +9,21 @@ from olm import Account, OlmAccountError, OlmVerifyError, ed25519_verify
 class TestClass(object):
     def test_account_creation(self):
         alice = Account()
-        assert alice.identity_keys()
-        assert len(alice.identity_keys()) == 2
+        assert alice.identity_keys
+        assert len(alice.identity_keys) == 2
 
     def test_account_pickle(self):
         alice = Account()
         pickle = alice.pickle()
-        assert (alice.identity_keys() == Account.from_pickle(pickle)
-                .identity_keys())
+        assert (alice.identity_keys == Account.from_pickle(pickle)
+                .identity_keys)
 
     def test_passphrase_pickle(self):
         alice = Account()
         passphrase = "It's a secret to everybody"
         pickle = alice.pickle(passphrase)
-        assert (alice.identity_keys() == Account.from_pickle(
-            pickle, passphrase).identity_keys())
+        assert (alice.identity_keys == Account.from_pickle(
+            pickle, passphrase).identity_keys)
 
     def test_wrong_passphrase_pickle(self):
         alice = Account()
@@ -36,24 +36,24 @@ class TestClass(object):
     def test_one_time_keys(self):
         alice = Account()
         alice.generate_one_time_keys(10)
-        one_time_keys = alice.one_time_keys()
+        one_time_keys = alice.one_time_keys
         assert one_time_keys
         assert len(one_time_keys["curve25519"]) == 10
 
     def test_max_one_time_keys(self):
         alice = Account()
-        assert isinstance(alice.max_one_time_keys(), int)
+        assert isinstance(alice.max_one_time_keys, int)
 
     def test_publish_one_time_keys(self):
         alice = Account()
         alice.generate_one_time_keys(10)
-        one_time_keys = alice.one_time_keys()
+        one_time_keys = alice.one_time_keys
 
         assert one_time_keys
         assert len(one_time_keys["curve25519"]) == 10
 
         alice.mark_keys_as_published()
-        assert not alice.one_time_keys()["curve25519"]
+        assert not alice.one_time_keys["curve25519"]
 
     def test_clear(self):
         alice = Account()
@@ -67,7 +67,7 @@ class TestClass(object):
         alice = Account()
 
         signature = alice.sign(message)
-        signing_key = alice.identity_keys()["ed25519"]
+        signing_key = alice.identity_keys["ed25519"]
 
         assert signature
         assert signing_key
@@ -80,7 +80,7 @@ class TestClass(object):
         bob = Account()
 
         signature = alice.sign(message)
-        signing_key = bob.identity_keys()["ed25519"]
+        signing_key = bob.identity_keys["ed25519"]
 
         assert signature
         assert signing_key
