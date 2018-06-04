@@ -11,9 +11,9 @@ install: olm
 test: develop py2develop
 	python3 -m pytest
 	python2 -m pytest
-	python3 -m pytest --flake8
-	python3 -m pytest --isort
-	python3 -m pytest --cov
+	python3 -m pytest --flake8 --benchmark-disable
+	python3 -m pytest --isort --benchmark-disable
+	python3 -m pytest --cov --benchmark-disable
 
 clean:
 	-rm -r python_olm.egg-info/ dist/ __pycache__/
