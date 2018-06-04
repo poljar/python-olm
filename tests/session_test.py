@@ -59,6 +59,7 @@ class TestClass(object):
         message = session.encrypt(plaintext)
         alice_id = alice.identity_keys()["curve25519"]
         bob_session = InboundSession(bob, message, alice_id)
+        bob.remove_one_time_keys(bob_session)
         assert plaintext == bob_session.decrypt(message)
 
         bob_plaintext = "Grumble, Grumble"
