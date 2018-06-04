@@ -59,9 +59,10 @@ class InboundGroupSession(object):
         byte_session_key = bytes(session_key, "utf-8")
 
         key_buffer = ffi.new("char[]", byte_session_key)
-        lib.olm_init_inbound_group_session(
+        ret = lib.olm_init_inbound_group_session(
             self._session, key_buffer, len(byte_session_key)
         )
+        self._check_error(ret)
 
     @staticmethod
     def _allocate():
@@ -80,10 +81,12 @@ class InboundGroupSession(object):
             self._session)
         pickle_buffer = ffi.new("char[]", pickle_length)
 
-        lib.olm_pickle_inbound_group_session(
+        ret = lib.olm_pickle_inbound_group_session(
             self._session, passphrase_buffer, len(byte_passphrase),
             pickle_buffer, pickle_length
         )
+
+        self._check_error(ret)
 
         return ffi.unpack(pickle_buffer, pickle_length)
 
@@ -153,7 +156,12 @@ class InboundGroupSession(object):
         # type: () -> str
         id_length = lib.olm_inbound_group_session_id_length(self._session)
         id_buffer = ffi.new("char[]", id_length)
-        lib.olm_inbound_group_session_id(self._session, id_buffer, id_length)
+        ret = lib.olm_inbound_group_session_id(
+            self._session,
+            id_buffer,
+            id_length
+        )
+        self._check_error(ret)
         return ffi.unpack(id_buffer, id_length).decode("utf-8")
 
     @property
@@ -167,8 +175,13 @@ class InboundGroupSession(object):
             self._session)
 
         export_buffer = ffi.new("char[]", export_length)
-        lib.olm_export_inbound_group_session(self._session, export_buffer,
-                                             export_length, message_index)
+        ret = lib.olm_export_inbound_group_session(
+            self._session,
+            export_buffer,
+            export_length,
+            message_index
+        )
+        self._check_error(ret)
         return ffi.unpack(export_buffer, export_length).decode("utf-8")
 
     @classmethod
@@ -212,9 +225,10 @@ class OutboundGroupSession(object):
         random = _URANDOM(random_length)
         random_buffer = ffi.new("char[]", random)
 
-        lib.olm_init_outbound_group_session(
+        ret = lib.olm_init_outbound_group_session(
             self._session, random_buffer, random_length
         )
+        self._check_error(ret)
 
     @staticmethod
     def _allocate():
@@ -224,6 +238,22 @@ class OutboundGroupSession(object):
 
         return buf, session
 
+    @staticmethod
+    def _check_error_buf(session, ret):
+        # type: (ffi.cdata, int) -> None
+        if ret != lib.olm_error():
+            return
+
+        raise OlmGroupSessionError(
+            "{}".format(
+                ffi.string(
+                    lib.olm_outbound_group_session_last_error(session)
+                ).decode("utf-8")
+            ))
+
+    def _check_error(self, ret):
+        OutboundGroupSession._check_error_buf(self._session, ret)
+
     def pickle(self, passphrase=""):
         # type: (Optional[str]) -> bytes
         byte_passphrase = bytes(passphrase, "utf-8") if passphrase else b""
@@ -232,10 +262,11 @@ class OutboundGroupSession(object):
             self._session)
         pickle_buffer = ffi.new("char[]", pickle_length)
 
-        lib.olm_pickle_outbound_group_session(
+        ret = lib.olm_pickle_outbound_group_session(
             self._session, passphrase_buffer, len(byte_passphrase),
             pickle_buffer, pickle_length
         )
+        self._check_error(ret)
         return ffi.unpack(pickle_buffer, pickle_length)
 
     @classmethod
@@ -247,13 +278,14 @@ class OutboundGroupSession(object):
 
         buf, session = OutboundGroupSession._allocate()
 
-        lib.olm_unpickle_outbound_group_session(
+        ret = lib.olm_unpickle_outbound_group_session(
             session,
             passphrase_buffer,
             len(byte_passphrase),
             pickle_buffer,
             len(pickle)
         )
+        OutboundGroupSession._check_error_buf(session, ret)
 
         return cls(buf, session)
 
@@ -269,11 +301,12 @@ class OutboundGroupSession(object):
 
         plaintext_buffer = ffi.new("char[]", byte_plaintext)
 
-        lib.olm_group_encrypt(
+        ret = lib.olm_group_encrypt(
             self._session,
             plaintext_buffer, len(byte_plaintext),
             message_buffer, message_length,
         )
+        self._check_error(ret)
         return ffi.unpack(message_buffer, message_length).decode("utf-8")
 
     @property
@@ -282,7 +315,12 @@ class OutboundGroupSession(object):
         id_length = lib.olm_outbound_group_session_id_length(self._session)
         id_buffer = ffi.new("char[]", id_length)
 
-        lib.olm_outbound_group_session_id(self._session, id_buffer, id_length)
+        ret = lib.olm_outbound_group_session_id(
+            self._session,
+            id_buffer,
+            id_length
+        )
+        self._check_error(ret)
 
         return ffi.unpack(id_buffer, id_length).decode("utf-8")
 
@@ -297,10 +335,11 @@ class OutboundGroupSession(object):
         key_length = lib.olm_outbound_group_session_key_length(self._session)
         key_buffer = ffi.new("char[]", key_length)
 
-        lib.olm_outbound_group_session_key(
+        ret = lib.olm_outbound_group_session_key(
             self._session,
             key_buffer,
             key_length
         )
+        self._check_error(ret)
 
         return ffi.unpack(key_buffer, key_length).decode("utf-8")
