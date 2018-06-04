@@ -171,6 +171,24 @@ class InboundGroupSession(object):
                                              export_length, message_index)
         return ffi.unpack(export_buffer, export_length).decode("utf-8")
 
+    @classmethod
+    def import_session(cls, session_key):
+        # type: (Union[str, bytes]) -> InboundGroupSession
+        buf, session = InboundGroupSession._allocate()
+
+        byte_session_key = (session_key if isinstance(session_key, bytes)
+                            else bytes(session_key, "utf-8"))
+
+        key_buffer = ffi.new("char[]", byte_session_key)
+        ret = lib.olm_import_inbound_group_session(
+            session,
+            key_buffer,
+            len(byte_session_key)
+        )
+        InboundGroupSession._check_error_buf(session, ret)
+
+        return cls(_buf=buf, _session=session)
+
 
 class OutboundGroupSession(object):
     def __init__(self, _buf=None, _session=None):

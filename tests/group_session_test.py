@@ -1,6 +1,8 @@
 from builtins import str
 
-from olm.group_session import InboundGroupSession, OutboundGroupSession
+import pytest
+from olm.group_session import (InboundGroupSession, OlmGroupSessionError,
+                               OutboundGroupSession)
 
 
 class TestClass(object):
@@ -32,6 +34,14 @@ class TestClass(object):
         inbound = InboundGroupSession(outbound.session_key)
         pickle = inbound.pickle()
         InboundGroupSession.from_pickle(pickle)
+
+    def test_inbound_export(self):
+        outbound = OutboundGroupSession()
+        inbound = InboundGroupSession(outbound.session_key)
+        imported = InboundGroupSession.import_session(
+            inbound.export_session(inbound.first_known_index)
+        )
+        assert "Test" == imported.decrypt(outbound.encrypt("Test"))
 
     def test_encrypt(self):
         outbound = OutboundGroupSession()
