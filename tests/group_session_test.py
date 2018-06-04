@@ -47,3 +47,15 @@ class TestClass(object):
         outbound = OutboundGroupSession()
         inbound = InboundGroupSession(outbound.session_key)
         assert "Test" == inbound.decrypt(outbound.encrypt("Test"))
+
+    def test_decrypt_failure(self):
+        outbound = OutboundGroupSession()
+        inbound = InboundGroupSession(outbound.session_key)
+        eve_outbound = OutboundGroupSession()
+        with pytest.raises(OlmGroupSessionError):
+            inbound.decrypt(eve_outbound.encrypt("Test"))
+
+    def test_id(self):
+        outbound = OutboundGroupSession()
+        inbound = InboundGroupSession(outbound.session_key)
+        assert outbound.id == inbound.id
