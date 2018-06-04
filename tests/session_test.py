@@ -18,6 +18,13 @@ class TestClass(object):
         _, _, session_2 = self._create_session()
         session_1.id != session_2.id
 
+    def test_session_clear(self):
+        _, _, session = self._create_session()
+        session.clear()
+
+        assert not session._session
+        assert not session._buf
+
     def test_session_pickle(self):
         alice, bob, session = self._create_session()
         Session.from_pickle(session.pickle()).id == session.id
