@@ -250,12 +250,6 @@ class Session():
         self._session = None
         self._buf = None
 
-    def __del__(self):
-        # type: () -> None
-        """Delete the session."""
-        if self._session:
-            self.clear()
-
 
 class InboundSession(Session):
     def __init__(self, account, message, identity_key=None):
