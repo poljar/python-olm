@@ -2,6 +2,7 @@ python-olm
 ==========
 
 [![Travis Build Status](https://travis-ci.org/poljar/python-olm.svg?branch=master)](https://travis-ci.org/poljar/python-olm)
+[![Codecov Coverage Status](https://codecov.io/gh/poljar/python-olm/branch/master/graph/badge.svg)](https://codecov.io/gh/poljar/python-olm)
 
 Python bindings for libolm.
 
