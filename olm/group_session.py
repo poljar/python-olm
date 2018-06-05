@@ -202,6 +202,17 @@ class InboundGroupSession(object):
 
         return cls(_buf=buf, _session=session)
 
+    def clear(self):
+        # type: () -> None
+        """Clear the memory used to back this group session.
+
+        After clearing the session the session state is invalid and can't be
+        reused.
+        """
+        lib.olm_clear_inbound_group_session(self._session)
+        self._session = None
+        self._buf = None
+
 
 class OutboundGroupSession(object):
     def __init__(self, _buf=None, _session=None):
@@ -343,3 +354,14 @@ class OutboundGroupSession(object):
         self._check_error(ret)
 
         return ffi.unpack(key_buffer, key_length).decode("utf-8")
+
+    def clear(self):
+        # type: () -> None
+        """Clear the memory used to back this group session.
+
+        After clearing the session the session state is invalid and can't be
+        reused.
+        """
+        lib.olm_clear_outbound_group_session(self._session)
+        self._session = None
+        self._buf = None

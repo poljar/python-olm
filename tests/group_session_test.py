@@ -76,3 +76,18 @@ class TestClass(object):
 
         with pytest.raises(OlmGroupSessionError):
             OutboundGroupSession.from_pickle(pickle)
+
+    def test_outbound_clear(self):
+        session = OutboundGroupSession()
+        session.clear()
+
+        assert not session._session
+        assert not session._buf
+
+    def test_inbound_clear(self):
+        outbound = OutboundGroupSession()
+        inbound = InboundGroupSession(outbound.session_key)
+        inbound.clear()
+
+        assert not inbound._session
+        assert not inbound._buf
