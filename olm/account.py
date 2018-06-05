@@ -27,12 +27,12 @@ from _libolm import ffi, lib  # type: ignore
 
 # This is imported only for type checking purposes
 if False:
-    from .session import Session
+    from .session import Session  # pragma: no cover
 
 
 try:
     import secrets
-    _URANDOM = secrets.token_bytes
+    _URANDOM = secrets.token_bytes  # pragma: no cover
 except ImportError:  # pragma: no cover
     from os import urandom
     _URANDOM = urandom  # type: ignore

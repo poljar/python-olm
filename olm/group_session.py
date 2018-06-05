@@ -26,7 +26,7 @@ from _libolm import ffi, lib  # type: ignore
 
 try:
     import secrets
-    _URANDOM = secrets.token_bytes
+    _URANDOM = secrets.token_bytes  # pragma: no cover
 except ImportError:  # pragma: no cover
     from os import urandom
     _URANDOM = urandom  # type: ignore
