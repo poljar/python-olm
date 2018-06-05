@@ -1,3 +1,4 @@
+language: python
 sudo: false
 before_install:
     - wget https://matrix.org/git/olm/snapshot/olm-2.2.0.tar.bz2
