@@ -15,7 +15,7 @@ matrix:
         - python: pypy
           env: TOXENV=pypy
         - python: 3.6
-            env: TOXENV=py2-cov,py3-cov,coverage
+          env: TOXENV=py2-cov,py3-cov,coverage
 
 install: pip install tox-travis
 script: tox
