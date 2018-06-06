@@ -16,7 +16,9 @@ class TestClass(object):
     def test_session_create(self):
         _, _, session_1 = self._create_session()
         _, _, session_2 = self._create_session()
-        session_1.id != session_2.id
+        assert session_1
+        assert session_2
+        assert session_1.id != session_2.id
 
     def test_session_clear(self):
         _, _, session = self._create_session()
