@@ -10,8 +10,8 @@ Examples:
     alice = Account()
     bob = Account()
     bob.generate_one_time_keys(1)
-    id_key = bob.identity_keys()['curve25519']
-    one_time = list(bob.one_time_keys()["curve25519"].values())[0]
+    id_key = bob.identity_keys['curve25519']
+    one_time = list(bob.one_time_keys["curve25519"].values())[0]
     session = OutboundSession(alice, id_key, one_time)
     s = OutboundSession(alice, id_key, one_time)
 
@@ -82,6 +82,7 @@ class OlmMessage(_OlmMessage):
 
 class Session():
     """libolm Session class."""
+
     def __init__(self):
         # type: () -> None
         self._buf = ffi.new("char[]", lib.olm_session_size())
