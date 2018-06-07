@@ -38,11 +38,6 @@ of the class.
  'ed25519': 'HHpOuFYdHwoa54GxSttz9YmaTmbuVU3js92UTUjYJgM'}
 ```
 
-An account should be cleared after it's no longer needed.
-
-```python
->>> alice.clear()
-```
 
 ## One Time keys
 
@@ -88,13 +83,6 @@ between two accounts.
 >>> id_key = bob.identity_keys["curve25519"]
 >>> one_time = list(bob.one_time_keys["curve25519"].values())[0]
 >>> alice_session = OutboundSession(alice, id_key, one_time)
-```
-
-Just like accounts, sessions should as well be cleared after they aren't needed
-anymore:
-
-```python
->>> session.clear()
 ```
 
 ## Encryption
@@ -146,12 +134,6 @@ creation is straightforward.
 ```python
 >>> alice_group = OutboundGroupSession()
 >>> bob_inbound_group = InboundGroupSession(alice.sesion_key)
-```
-
-Again, a group session should be cleared after it's not needed anymore.
-
-```python
->>> alice.clear()
 ```
 
 ## Group Encryption
