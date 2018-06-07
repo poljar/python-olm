@@ -93,9 +93,11 @@ class Session():
         if ret != lib.olm_error():
             return
 
-        raise OlmSessionError("{}".format(
-            ffi.string(
-                lib.olm_session_last_error(self._session)).decode("utf-8")))
+        last_error = ffi.string(
+            lib.olm_session_last_error(self._session)
+        ).decode("utf-8")
+
+        raise OlmSessionError(last_error)
 
     def pickle(self, passphrase=""):
         # type: (Optional[str]) -> bytes

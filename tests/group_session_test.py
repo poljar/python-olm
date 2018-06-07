@@ -67,7 +67,7 @@ class TestClass(object):
         assert outbound.id == inbound.id
 
     def test_inbound_fail(self):
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             InboundGroupSession()
 
     def test_oubtound_pickle_fail(self):

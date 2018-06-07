@@ -37,24 +37,22 @@ class OlmGroupSessionError(Exception):
 
 
 class InboundGroupSession(object):
-    def __init__(self, session_key=None, _buf=None, _session=None):
-        # type: (str, ffi.cdata, ffi.cdata) -> None
+    def __new__(cls, session_key=None, *args, **kwargs):
+        obj = super().__new__(cls, *args, **kwargs)
+        obj._buf = ffi.new("char[]", lib.olm_inbound_group_session_size())
+        obj._session = lib.olm_inbound_group_session(obj._buf)
+        return obj
+
+    def __init__(self, session_key):
+        # type: (str) -> None
         """Create a new inbound group session.
 
         Raises OlmGroupSessionError on failure. If there weren't enough random
         bytes for the session creation the error message for the exception will
         be NOT_ENOUGH_RANDOM.
         """
-        if _buf and _session:
-            self._buf = _buf
-            self._session = _session
-            return
-
-        if not session_key:
-            raise ValueError("Can't initialize a new inbound group session "
-                             "without a session key")
-
-        self._buf, self._session = InboundGroupSession._allocate()
+        if False:
+            self._session = self._session  # type: ffi.cdata
 
         byte_session_key = bytes(session_key, "utf-8")
 
@@ -63,14 +61,6 @@ class InboundGroupSession(object):
             self._session, key_buffer, len(byte_session_key)
         )
         self._check_error(ret)
-
-    @staticmethod
-    def _allocate():
-        # type: () -> Tuple[ffi.cdata, ffi.cdata]
-        buf = ffi.new("char[]", lib.olm_inbound_group_session_size())
-        session = lib.olm_inbound_group_session(buf)
-
-        return buf, session
 
     def pickle(self, passphrase=""):
         # type: (Optional[str]) -> bytes
@@ -97,34 +87,29 @@ class InboundGroupSession(object):
         passphrase_buffer = ffi.new("char[]", byte_passphrase)
         pickle_buffer = ffi.new("char[]", pickle)
 
-        buf, session = InboundGroupSession._allocate()
+        obj = cls.__new__(cls)
 
         ret = lib.olm_unpickle_inbound_group_session(
-            session,
+            obj._session,
             passphrase_buffer,
             len(byte_passphrase),
             pickle_buffer,
             len(pickle)
         )
-        InboundGroupSession._check_error_buf(session, ret)
+        obj._check_error(ret)
 
-        return cls(_buf=buf, _session=session)
+        return obj
 
-    @staticmethod
-    def _check_error_buf(session, ret):
-        # type: (ffi.cdata, int) -> None
+    def _check_error(self, ret):
+        # type: (int) -> None
         if ret != lib.olm_error():
             return
 
-        raise OlmGroupSessionError(
-            "{}".format(
-                ffi.string(
-                    lib.olm_inbound_group_session_last_error(session)
-                ).decode("utf-8")
-            ))
+        last_error = ffi.string(
+            lib.olm_inbound_group_session_last_error(self._session)
+        ).decode("utf-8")
 
-    def _check_error(self, ret):
-        InboundGroupSession._check_error_buf(self._session, ret)
+        raise OlmGroupSessionError(last_error)
 
     def decrypt(self, ciphertext):
         # type: (str) -> str
@@ -187,20 +172,20 @@ class InboundGroupSession(object):
     @classmethod
     def import_session(cls, session_key):
         # type: (Union[str, bytes]) -> InboundGroupSession
-        buf, session = InboundGroupSession._allocate()
+        obj = cls.__new__(cls)
 
         byte_session_key = (session_key if isinstance(session_key, bytes)
                             else bytes(session_key, "utf-8"))
 
         key_buffer = ffi.new("char[]", byte_session_key)
         ret = lib.olm_import_inbound_group_session(
-            session,
+            obj._session,
             key_buffer,
             len(byte_session_key)
         )
-        InboundGroupSession._check_error_buf(session, ret)
+        obj._check_error(ret)
 
-        return cls(_buf=buf, _session=session)
+        return obj
 
     def clear(self):
         # type: () -> None
@@ -215,20 +200,22 @@ class InboundGroupSession(object):
 
 
 class OutboundGroupSession(object):
-    def __init__(self, _buf=None, _session=None):
-        # type: (ffi.cdata, ffi.cdata) -> None
+    def __new__(cls, *args, **kwargs):
+        obj = super().__new__(cls, *args, **kwargs)
+        obj._buf = ffi.new("char[]", lib.olm_outbound_group_session_size())
+        obj._session = lib.olm_outbound_group_session(obj._buf)
+        return obj
+
+    def __init__(self):
+        # type: () -> None
         """Create a new inbound group session.
 
         Raises OlmGroupSessionError on failure. If there weren't enough random
         bytes for the session creation the error message for the exception will
         be NOT_ENOUGH_RANDOM.
         """
-        if _buf and _session:
-            self._buf = _buf
-            self._session = _session
-            return
-
-        self._buf, self._session = OutboundGroupSession._allocate()
+        if False:
+            self._session = self._session  # type: ffi.cdata
 
         random_length = lib.olm_init_outbound_group_session_random_length(
             self._session
@@ -241,29 +228,16 @@ class OutboundGroupSession(object):
         )
         self._check_error(ret)
 
-    @staticmethod
-    def _allocate():
-        # type: () -> Tuple[ffi.cdata, ffi.cdata]
-        buf = ffi.new("char[]", lib.olm_outbound_group_session_size())
-        session = lib.olm_outbound_group_session(buf)
-
-        return buf, session
-
-    @staticmethod
-    def _check_error_buf(session, ret):
-        # type: (ffi.cdata, int) -> None
+    def _check_error(self, ret):
+        # type: (int) -> None
         if ret != lib.olm_error():
             return
 
-        raise OlmGroupSessionError(
-            "{}".format(
-                ffi.string(
-                    lib.olm_outbound_group_session_last_error(session)
-                ).decode("utf-8")
-            ))
+        last_error = ffi.string(
+            lib.olm_outbound_group_session_last_error(self._session)
+        ).decode("utf-8")
 
-    def _check_error(self, ret):
-        OutboundGroupSession._check_error_buf(self._session, ret)
+        raise OlmGroupSessionError(last_error)
 
     def pickle(self, passphrase=""):
         # type: (Optional[str]) -> bytes
@@ -287,18 +261,18 @@ class OutboundGroupSession(object):
         passphrase_buffer = ffi.new("char[]", byte_passphrase)
         pickle_buffer = ffi.new("char[]", pickle)
 
-        buf, session = OutboundGroupSession._allocate()
+        obj = cls.__new__(cls)
 
         ret = lib.olm_unpickle_outbound_group_session(
-            session,
+            obj._session,
             passphrase_buffer,
             len(byte_passphrase),
             pickle_buffer,
             len(pickle)
         )
-        OutboundGroupSession._check_error_buf(session, ret)
+        obj._check_error(ret)
 
-        return cls(buf, session)
+        return obj
 
     def encrypt(self, plaintext):
         # type: (str) -> str
