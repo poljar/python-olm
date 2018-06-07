@@ -27,6 +27,11 @@ from builtins import bytes
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
+from .finalize import track_for_finalization
+
+
+def _clear_utility(utility):  # pragma: no cover
+    lib.olm_clear_utility(utility)
 
 
 class OlmVerifyError(Exception):
@@ -45,6 +50,7 @@ class Utility(object):
         # type: () -> None
         cls._buf = ffi.new("char[]", lib.olm_utility_size())
         cls._utility = lib.olm_utility(cls._buf)
+        track_for_finalization(cls, cls._utility, _clear_utility)
 
     @classmethod
     def _check_error(cls, ret):
