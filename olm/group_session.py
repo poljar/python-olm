@@ -23,6 +23,7 @@ from typing import *
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
+from .finalize import track_for_finalization
 
 try:
     import secrets
@@ -30,6 +31,14 @@ try:
 except ImportError:  # pragma: no cover
     from os import urandom
     _URANDOM = urandom  # type: ignore
+
+
+def _clear_inbound_group_session(session):
+    lib.olm_clear_inbound_group_session(session)
+
+
+def _clear_outbound_group_session(session):
+    lib.olm_clear_outbound_group_session(session)
 
 
 class OlmGroupSessionError(Exception):
@@ -41,6 +50,7 @@ class InboundGroupSession(object):
         obj = super().__new__(cls, *args, **kwargs)
         obj._buf = ffi.new("char[]", lib.olm_inbound_group_session_size())
         obj._session = lib.olm_inbound_group_session(obj._buf)
+        track_for_finalization(obj, obj._session, _clear_inbound_group_session)
         return obj
 
     def __init__(self, session_key):
@@ -187,23 +197,17 @@ class InboundGroupSession(object):
 
         return obj
 
-    def clear(self):
-        # type: () -> None
-        """Clear the memory used to back this group session.
-
-        After clearing the session the session state is invalid and can't be
-        reused.
-        """
-        lib.olm_clear_inbound_group_session(self._session)
-        self._session = None
-        self._buf = None
-
 
 class OutboundGroupSession(object):
     def __new__(cls, *args, **kwargs):
         obj = super().__new__(cls, *args, **kwargs)
         obj._buf = ffi.new("char[]", lib.olm_outbound_group_session_size())
         obj._session = lib.olm_outbound_group_session(obj._buf)
+        track_for_finalization(
+            obj,
+            obj._session,
+            _clear_outbound_group_session
+        )
         return obj
 
     def __init__(self):
@@ -328,14 +332,3 @@ class OutboundGroupSession(object):
         self._check_error(ret)
 
         return ffi.unpack(key_buffer, key_length).decode("utf-8")
-
-    def clear(self):
-        # type: () -> None
-        """Clear the memory used to back this group session.
-
-        After clearing the session the session state is invalid and can't be
-        reused.
-        """
-        lib.olm_clear_outbound_group_session(self._session)
-        self._session = None
-        self._buf = None
