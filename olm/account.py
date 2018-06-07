@@ -65,7 +65,7 @@ class Account(object):
         """
         # This is needed to silence mypy not knowing the type of _account.
         # There has to be a better way for this.
-        if False:
+        if False:  # pragma: no cover
             self._account = self._account  # type: ffi.cdata
 
         random_length = lib.olm_create_account_random_length(self._account)

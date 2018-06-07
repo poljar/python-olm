@@ -51,7 +51,7 @@ class InboundGroupSession(object):
         bytes for the session creation the error message for the exception will
         be NOT_ENOUGH_RANDOM.
         """
-        if False:
+        if False:  # pragma: no cover
             self._session = self._session  # type: ffi.cdata
 
         byte_session_key = bytes(session_key, "utf-8")
@@ -214,7 +214,7 @@ class OutboundGroupSession(object):
         bytes for the session creation the error message for the exception will
         be NOT_ENOUGH_RANDOM.
         """
-        if False:
+        if False:  # pragma: no cover
             self._session = self._session  # type: ffi.cdata
 
         random_length = lib.olm_init_outbound_group_session_random_length(
