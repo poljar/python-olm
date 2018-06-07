@@ -40,8 +40,8 @@ class OlmGroupSessionError(Exception):
 
 
 class InboundGroupSession(object):
-    def __new__(cls, session_key=None, *args, **kwargs):
-        obj = super().__new__(cls, *args, **kwargs)
+    def __new__(cls, session_key=None):
+        obj = super().__new__(cls)
         obj._buf = ffi.new("char[]", lib.olm_inbound_group_session_size())
         obj._session = lib.olm_inbound_group_session(obj._buf)
         track_for_finalization(obj, obj._session, _clear_inbound_group_session)
@@ -193,8 +193,8 @@ class InboundGroupSession(object):
 
 
 class OutboundGroupSession(object):
-    def __new__(cls, *args, **kwargs):
-        obj = super().__new__(cls, *args, **kwargs)
+    def __new__(cls):
+        obj = super().__new__(cls)
         obj._buf = ffi.new("char[]", lib.olm_outbound_group_session_size())
         obj._session = lib.olm_outbound_group_session(obj._buf)
         track_for_finalization(

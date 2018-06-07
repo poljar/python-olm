@@ -43,8 +43,8 @@ class OlmAccountError(Exception):
 class Account(object):
     """libolm Account class."""
 
-    def __new__(cls, *args, **kwargs):
-        obj = super().__new__(cls, *args, **kwargs)
+    def __new__(cls):
+        obj = super().__new__(cls)
         obj._buf = ffi.new("char[]", lib.olm_account_size())
         obj._account = lib.olm_account(obj._buf)
         track_for_finalization(obj, obj._account, _clear_account)
