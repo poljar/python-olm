@@ -20,7 +20,7 @@ from __future__ import unicode_literals
 import json
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes
-from typing import Dict, Optional, Tuple
+from typing import Dict, Optional
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
@@ -45,8 +45,14 @@ class OlmAccountError(Exception):
 class Account(object):
     """libolm Account class."""
 
-    def __init__(self, buf=None, account=None):
-        # type: (ffi.cdata, ffi.cdata) -> None
+    def __new__(cls, *args, **kwargs):
+        obj = super().__new__(cls, *args, **kwargs)
+        obj._buf = ffi.new("char[]", lib.olm_account_size())
+        obj._account = lib.olm_account(obj._buf)
+        return obj
+
+    def __init__(self):
+        # type: () -> None
         """Create a new olm account.
 
         The contructor creates a new identity key pair unless the arguments buf
@@ -57,24 +63,11 @@ class Account(object):
         for the account creation the error message for the exception will be
         NOT_ENOUGH_RANDOM.
         """
-        if buf and account:
-            self._buf = buf
-            self._account = account
-            return
+        # This is needed to silence mypy not knowing the type of _account.
+        # There has to be a better way for this.
+        if False:
+            self._account = self._account  # type: ffi.cdata
 
-        self._buf, self._account = Account._allocate()
-        self._create()
-
-    @staticmethod
-    def _allocate():
-        # type: () -> Tuple[ffi.cdata, ffi.cdata]
-        buf = ffi.new("char[]", lib.olm_account_size())
-        account = lib.olm_account(buf)
-
-        return buf, account
-
-    def _create(self):
-        # type: () -> None
         random_length = lib.olm_create_account_random_length(self._account)
         random = _URANDOM(random_length)
         random_buffer = ffi.new("char[]", random)
@@ -85,16 +78,13 @@ class Account(object):
 
     def _check_error(self, ret):
         # type: (int) -> None
-        Account._check_error_buf(self._account, ret)
-
-    @staticmethod
-    def _check_error_buf(account, ret):
-        # type: (ffi.cdata, int) -> None
         if ret != lib.olm_error():
             return
 
-        raise OlmAccountError("{}".format(
-            ffi.string(lib.olm_account_last_error(account)).decode("utf-8")))
+        last_error = ffi.string(
+            lib.olm_account_last_error(self._account)).decode("utf-8")
+
+        raise OlmAccountError(last_error)
 
     def pickle(self, passphrase=""):
         # type: (Optional[str]) -> bytes
@@ -140,13 +130,13 @@ class Account(object):
         key_buffer = ffi.new("char[]", byte_key)
         pickle_buffer = ffi.new("char[]", pickle)
 
-        buf, account = Account._allocate()
+        obj = cls.__new__(cls)
 
-        ret = lib.olm_unpickle_account(account, key_buffer, len(byte_key),
+        ret = lib.olm_unpickle_account(obj._account, key_buffer, len(byte_key),
                                        pickle_buffer, len(pickle))
-        Account._check_error_buf(account, ret)
+        obj._check_error(ret)
 
-        return cls(buf, account)
+        return obj
 
     @property
     def identity_keys(self):
