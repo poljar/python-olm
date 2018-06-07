@@ -19,7 +19,7 @@ from __future__ import unicode_literals
 
 import json
 # pylint: disable=redefined-builtin,unused-import
-from builtins import bytes
+from builtins import bytes, super
 from typing import Dict, Optional
 
 # pylint: disable=no-name-in-module
