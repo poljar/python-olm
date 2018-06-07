@@ -57,10 +57,7 @@ class TestClass(object):
 
     def test_clear(self):
         alice = Account()
-        alice.clear()
-
-        assert not alice._account
-        assert not alice._buf
+        del alice
 
     @given(text())
     def test_valid_signature(self, message):

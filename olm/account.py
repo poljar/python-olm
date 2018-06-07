@@ -24,6 +24,7 @@ from typing import Dict, Optional
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
+from .finalize import track_for_finalization
 
 # This is imported only for type checking purposes
 if False:
@@ -38,6 +39,10 @@ except ImportError:  # pragma: no cover
     _URANDOM = urandom  # type: ignore
 
 
+def _clear_account(account):
+    lib.olm_clear_account(account)
+
+
 class OlmAccountError(Exception):
     """libolm Account error exception."""
 
@@ -49,6 +54,7 @@ class Account(object):
         obj = super().__new__(cls, *args, **kwargs)
         obj._buf = ffi.new("char[]", lib.olm_account_size())
         obj._account = lib.olm_account(obj._buf)
+        track_for_finalization(obj, obj._account, _clear_account)
         return obj
 
     def __init__(self):
@@ -236,14 +242,3 @@ class Account(object):
         """
         self._check_error(lib.olm_remove_one_time_keys(self._account,
                                                        session._session))
-
-    def clear(self):
-        # type: () -> None
-        """Clear the memory used to back this account.
-
-        After clearing the account the account state is invalid and can't be
-        reused. This method is called in the deconstructor of this class.
-        """
-        lib.olm_clear_account(self._account)
-        self._account = None
-        self._buf = None
