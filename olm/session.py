@@ -25,6 +25,7 @@ from typing import Dict, Optional, Tuple
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
+from .finalize import track_for_finalization
 
 # This is imported only for type checking purposes
 if False:
@@ -80,6 +81,10 @@ class OlmMessage(_OlmMessage):
         return "OlmMessage({})".format(self.ciphertext)
 
 
+def _clear_session(session):
+    lib.olm_clear_session(session)
+
+
 class Session():
     """libolm Session class."""
 
@@ -87,6 +92,7 @@ class Session():
         # type: () -> None
         self._buf = ffi.new("char[]", lib.olm_session_size())
         self._session = lib.olm_session(self._buf)
+        track_for_finalization(self, self._session, _clear_session)
 
     def _check_error(self, ret):
         # type: (int) -> None
@@ -241,17 +247,6 @@ class Session():
         self._check_error(ret)
 
         return bool(ret)
-
-    def clear(self):
-        # type: () -> None
-        """Clear the memory used to back this session.
-
-        After clearing the session the session state is invalid and can't be
-        reused. This method is called in the deconstructor of this class.
-        """
-        lib.olm_clear_session(self._session)
-        self._session = None
-        self._buf = None
 
 
 class InboundSession(Session):

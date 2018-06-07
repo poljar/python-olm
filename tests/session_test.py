@@ -22,10 +22,7 @@ class TestClass(object):
 
     def test_session_clear(self):
         _, _, session = self._create_session()
-        session.clear()
-
-        assert not session._session
-        assert not session._buf
+        del session
 
     def test_session_pickle(self):
         alice, bob, session = self._create_session()
