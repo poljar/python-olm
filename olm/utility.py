@@ -11,12 +11,12 @@ Examples:
     alice = Account()
 
     signature = alice.sign(message)
-    signing_key = alice.identity_keys()["ed25519"]
+    signing_key = alice.identity_keys["ed25519"]
 
     assert signature
     assert signing_key
 
-    Utility.ed25519_verify(signing_key, message, signature)
+    ed25519_verify(signing_key, message, signature)
 
 """
 
@@ -38,7 +38,7 @@ class OlmVerifyError(Exception):
     """libolm signature verification exception."""
 
 
-class Utility(object):
+class _Utility(object):
     # pylint: disable=too-few-public-methods
     """libolm Utility class."""
 
@@ -64,14 +64,6 @@ class Utility(object):
 
     @classmethod
     def ed25519_verify(cls, key, message, signature):
-        """Verify an ed25519 signature.
-
-        Raises an OlmVerifyError if verification fails.
-        Args:
-            key(str): The ed25519 public key used for signing.
-            message(str): The signed message.
-            signature(bytes): The message signature.
-        """
         if not cls._utility:
             cls._allocate()
 
@@ -86,4 +78,12 @@ class Utility(object):
 
 
 def ed25519_verify(key, message, signature):
-    return Utility.ed25519_verify(key, message, signature)
+    """Verify an ed25519 signature.
+
+    Raises an OlmVerifyError if verification fails.
+    Args:
+        key(str): The ed25519 public key used for signing.
+        message(str): The signed message.
+        signature(bytes): The message signature.
+    """
+    return _Utility.ed25519_verify(key, message, signature)
