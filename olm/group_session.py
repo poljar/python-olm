@@ -19,18 +19,12 @@ from __future__ import unicode_literals
 
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
-from typing import *
+from typing import Optional, Union
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
 from .finalize import track_for_finalization
-
-try:
-    import secrets
-    _URANDOM = secrets.token_bytes  # pragma: no cover
-except ImportError:  # pragma: no cover
-    from os import urandom
-    _URANDOM = urandom  # type: ignore
+from ._compat import URANDOM
 
 
 def _clear_inbound_group_session(session):
@@ -224,7 +218,7 @@ class OutboundGroupSession(object):
         random_length = lib.olm_init_outbound_group_session_random_length(
             self._session
         )
-        random = _URANDOM(random_length)
+        random = URANDOM(random_length)
         random_buffer = ffi.new("char[]", random)
 
         ret = lib.olm_init_outbound_group_session(

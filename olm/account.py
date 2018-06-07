@@ -25,18 +25,11 @@ from typing import Dict, Optional
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
 from .finalize import track_for_finalization
+from ._compat  import URANDOM
 
 # This is imported only for type checking purposes
 if False:
     from .session import Session  # pragma: no cover
-
-
-try:
-    import secrets
-    _URANDOM = secrets.token_bytes  # pragma: no cover
-except ImportError:  # pragma: no cover
-    from os import urandom
-    _URANDOM = urandom  # type: ignore
 
 
 def _clear_account(account):
@@ -75,7 +68,7 @@ class Account(object):
             self._account = self._account  # type: ffi.cdata
 
         random_length = lib.olm_create_account_random_length(self._account)
-        random = _URANDOM(random_length)
+        random = URANDOM(random_length)
         random_buffer = ffi.new("char[]", random)
 
         self._check_error(
@@ -208,7 +201,7 @@ class Account(object):
         """
         random_length = lib.olm_account_generate_one_time_keys_random_length(
             self._account, count)
-        random = _URANDOM(random_length)
+        random = URANDOM(random_length)
         random_buffer = ffi.new("char[]", random)
         self._check_error(
             lib.olm_account_generate_one_time_keys(

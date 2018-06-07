@@ -26,18 +26,11 @@ from typing import Dict, Optional, Tuple
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
 from .finalize import track_for_finalization
+from ._compat import URANDOM
 
 # This is imported only for type checking purposes
 if False:
     from .account import Account  # pragma: no cover
-
-
-try:
-    import secrets
-    _URANDOM = secrets.token_bytes  # pragma: no cover
-except ImportError:  # pragma: no cover
-    from os import urandom
-    _URANDOM = urandom  # type: ignore
 
 
 class OlmSessionError(Exception):
@@ -162,7 +155,7 @@ class Session():
         # type: (str) -> _OlmMessage
         byte_plaintext = bytes(plaintext, "utf-8")
         r_length = lib.olm_encrypt_random_length(self._session)
-        random = _URANDOM(r_length)
+        random = URANDOM(r_length)
         random_buffer = ffi.new("char[]", random)
 
         message_type = lib.olm_encrypt_message_type(self._session)
@@ -295,7 +288,7 @@ class OutboundSession(Session):
         session_random_length = lib.olm_create_outbound_session_random_length(
             self._session)
 
-        random = _URANDOM(session_random_length)
+        random = URANDOM(session_random_length)
         random_buffer = ffi.new("char[]", random)
         identity_key_buffer = ffi.new("char[]", byte_id_key)
         one_time_key_buffer = ffi.new("char[]", byte_one_time)
