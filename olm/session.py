@@ -20,7 +20,7 @@ Examples:
 from __future__ import unicode_literals
 
 # pylint: disable=redefined-builtin,unused-import
-from builtins import bytes
+from builtins import bytes, super
 from typing import Dict, Optional, Tuple
 
 # pylint: disable=no-name-in-module
@@ -37,7 +37,7 @@ class OlmSessionError(Exception):
     """libolm Session exception."""
 
 
-class _OlmMessage():
+class _OlmMessage(object):
     def __init__(self, ciphertext, message_type):
         # type: (str, ffi.cdata) -> None
         self.ciphertext = ciphertext
@@ -78,14 +78,24 @@ def _clear_session(session):
     lib.olm_clear_session(session)
 
 
-class Session():
+class Session(object):
     """libolm Session class."""
+    def __new__(cls):
+        # type: () -> Session
+
+        obj = super().__new__(cls)
+        obj._buf = ffi.new("char[]", lib.olm_session_size())
+        obj._session = lib.olm_session(obj._buf)
+        track_for_finalization(obj, obj._session, _clear_session)
+        return obj
 
     def __init__(self):
         # type: () -> None
-        self._buf = ffi.new("char[]", lib.olm_session_size())
-        self._session = lib.olm_session(self._buf)
-        track_for_finalization(self, self._session, _clear_session)
+        if type(self) is Session:
+            raise TypeError("Session class may not be instantiated.")
+
+        if False:
+            self._session = self._session  # type: ffi.cdata
 
     def _check_error(self, ret):
         # type: (int) -> None
@@ -142,7 +152,7 @@ class Session():
         key_buffer = ffi.new("char[]", byte_key)
         pickle_buffer = ffi.new("char[]", pickle)
 
-        session = cls()
+        session = cls.__new__(cls)
 
         ret = lib.olm_unpickle_session(session._session, key_buffer,
                                        len(byte_key), pickle_buffer,
@@ -243,6 +253,9 @@ class Session():
 
 
 class InboundSession(Session):
+    def __new__(cls, account, message, identity_key=None):
+        return super().__new__(cls)
+
     def __init__(self, account, message, identity_key=None):
         # type: (Account, _OlmMessage, Optional[str]) -> None
         """Create a new inbound olm session.
@@ -251,7 +264,7 @@ class InboundSession(Session):
         for the session creation the error message for the exception will be
         NOT_ENOUGH_RANDOM.
         """
-        Session.__init__(self)
+        super().__init__()
         message_buffer = ffi.new("char[]", bytes(message.ciphertext, "utf-8"))
 
         if identity_key:
@@ -272,6 +285,9 @@ class InboundSession(Session):
 
 
 class OutboundSession(Session):
+    def __new__(cls, account, identity_key, one_time_key):
+        return super().__new__(cls)
+
     def __init__(self, account, identity_key, one_time_key):
         # type: (Account, str, str) -> None
         """Create a new outbound olm session.
@@ -280,7 +296,7 @@ class OutboundSession(Session):
         for the session creation the error message for the exception will be
         NOT_ENOUGH_RANDOM.
         """
-        Session.__init__(self)
+        super().__init__()
 
         byte_id_key = bytes(identity_key, "utf-8")
         byte_one_time = bytes(one_time_key, "utf-8")
