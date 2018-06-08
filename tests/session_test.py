@@ -24,6 +24,10 @@ class TestClass(object):
         _, _, session = self._create_session()
         del session
 
+    def test_invalid_session_create(self):
+        with pytest.raises(TypeError):
+            Session()
+
     def test_session_pickle(self):
         alice, bob, session = self._create_session()
         Session.from_pickle(session.pickle()).id == session.id
