@@ -18,8 +18,9 @@ Examples:
 import json
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
+from typing import AnyStr, Dict, Optional
+
 from future.utils import bytes_to_native_str
-from typing import Dict, Optional, AnyStr
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore

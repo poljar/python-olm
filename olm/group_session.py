@@ -17,8 +17,9 @@ Examples:
 
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
+from typing import AnyStr, Optional
+
 from future.utils import bytes_to_native_str
-from typing import Optional, AnyStr
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
