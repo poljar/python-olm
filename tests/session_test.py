@@ -1,6 +1,6 @@
 import pytest
-from olm import (Account, InboundSession, OlmPreKeyMessage, OlmSessionError,
-                 OutboundSession, Session)
+from olm import (Account, InboundSession, OlmMessage, OlmPreKeyMessage,
+                 OlmSessionError, OutboundSession, Session)
 
 
 class TestClass(object):
@@ -106,6 +106,28 @@ class TestClass(object):
 
         assert bob_session.matches(message_2nd) is True
         assert bob_session.matches(message_2nd, alice_id) is True
+
+    def test_invalid(self):
+        alice, bob, session = self._create_session()
+        message = OlmMessage("x")
+
+        with pytest.raises(TypeError):
+            session.matches(message)
+
+        message = OlmPreKeyMessage("x")
+        message.ciphertext = ""
+
+        with pytest.raises(ValueError):
+            session.matches(message)
+
+        with pytest.raises(ValueError):
+            InboundSession(bob, message)
+
+        with pytest.raises(ValueError):
+            OutboundSession(alice, "", "x")
+
+        with pytest.raises(ValueError):
+            OutboundSession(alice, "x", "")
 
     def test_doesnt_match(self):
         plaintext = "It's a secret to everybody"
