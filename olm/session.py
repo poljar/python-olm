@@ -21,12 +21,12 @@ from __future__ import unicode_literals
 
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
-from typing import Dict, Optional, Tuple
+from typing import Optional, AnyStr
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
 
-from ._compat import URANDOM
+from ._compat import URANDOM, to_bytes
 from .finalize import track_for_finalization
 
 # This is imported only for type checking purposes
@@ -40,11 +40,13 @@ class OlmSessionError(Exception):
 
 class _OlmMessage(object):
     def __init__(self, ciphertext, message_type):
-        # type: (str, ffi.cdata) -> None
+        # type: (AnyStr, ffi.cdata) -> None
         if not ciphertext:
             raise ValueError("Ciphertext can't be empty")
 
-        self.ciphertext = ciphertext
+        # I don't know why mypy wants a type annotation here nor why AnyStr
+        # doesn't work
+        self.ciphertext = ciphertext  # type: ignore
         self.message_type = message_type
 
     def __str__(self):
@@ -60,7 +62,7 @@ class _OlmMessage(object):
 
 class OlmPreKeyMessage(_OlmMessage):
     def __init__(self, ciphertext):
-        # type: (str) -> None
+        # type: (AnyStr) -> None
         _OlmMessage.__init__(self, ciphertext, lib.OLM_MESSAGE_TYPE_PRE_KEY)
 
     def __repr__(self):
@@ -70,7 +72,7 @@ class OlmPreKeyMessage(_OlmMessage):
 
 class OlmMessage(_OlmMessage):
     def __init__(self, ciphertext):
-        # type: (str) -> None
+        # type: (AnyStr) -> None
         _OlmMessage.__init__(self, ciphertext, lib.OLM_MESSAGE_TYPE_MESSAGE)
 
     def __repr__(self):
@@ -169,8 +171,9 @@ class Session(object):
         return session
 
     def encrypt(self, plaintext):
-        # type: (str) -> _OlmMessage
-        byte_plaintext = bytes(plaintext, "utf-8")
+        # type: (AnyStr) -> _OlmMessage
+        byte_plaintext = to_bytes(plaintext)
+
         r_length = lib.olm_encrypt_random_length(self._session)
         random = URANDOM(r_length)
         random_buffer = ffi.new("char[]", random)
@@ -209,12 +212,12 @@ class Session(object):
         if not message.ciphertext:
             raise ValueError("Ciphertext can't be empty")
 
-        byte_ciphertext = bytes(message.ciphertext, "utf-8")
+        byte_ciphertext = to_bytes(message.ciphertext)
         ciphertext_buffer = ffi.new("char[]", byte_ciphertext)
 
         max_plaintext_length = lib.olm_decrypt_max_plaintext_length(
             self._session, message.message_type, ciphertext_buffer,
-            len(message.ciphertext)
+            len(byte_ciphertext)
         )
         plaintext_buffer = ffi.new("char[]", max_plaintext_length)
         ciphertext_buffer = ffi.new("char[]", byte_ciphertext)
@@ -237,13 +240,15 @@ class Session(object):
         return ffi.unpack(id_buffer, id_length).decode("utf-8")
 
     def matches(self, message, identity_key=None):
-        # type: (_OlmMessage, Optional[str]) -> bool
+        # type: (_OlmMessage, Optional[AnyStr]) -> bool
         ret = None
-        byte_ciphertext = bytes(message.ciphertext, "utf-8")
+
+        byte_ciphertext = to_bytes(message.ciphertext)
+
         message_buffer = ffi.new("char[]", byte_ciphertext)
 
         if identity_key:
-            byte_id_key = bytes(identity_key, "utf-8")
+            byte_id_key = to_bytes(identity_key)
             identity_key_buffer = ffi.new("char[]", byte_id_key)
 
             ret = lib.olm_matches_inbound_session_from(
@@ -255,7 +260,7 @@ class Session(object):
         else:
             ret = lib.olm_matches_inbound_session(
                 self._session,
-                message_buffer, len(message.ciphertext))
+                message_buffer, len(byte_ciphertext))
 
         self._check_error(ret)
 
@@ -267,7 +272,7 @@ class InboundSession(Session):
         return super().__new__(cls)
 
     def __init__(self, account, message, identity_key=None):
-        # type: (Account, _OlmMessage, Optional[str]) -> None
+        # type: (Account, _OlmMessage, Optional[AnyStr]) -> None
         """Create a new inbound olm session.
 
         Raises OlmSessionError on failure. If there weren't enough random bytes
@@ -275,22 +280,23 @@ class InboundSession(Session):
         NOT_ENOUGH_RANDOM.
         """
         super().__init__()
-        message_buffer = ffi.new("char[]", bytes(message.ciphertext, "utf-8"))
+        byte_ciphertext = to_bytes(message.ciphertext)
+        message_buffer = ffi.new("char[]", byte_ciphertext)
 
         if identity_key:
-            byte_id_key = bytes(identity_key, "utf-8")
+            byte_id_key = to_bytes(identity_key)
             identity_key_buffer = ffi.new("char[]", byte_id_key)
             self._check_error(lib.olm_create_inbound_session_from(
                 self._session,
                 account._account,
                 identity_key_buffer, len(byte_id_key),
-                message_buffer, len(message.ciphertext)
+                message_buffer, len(byte_ciphertext)
             ))
         else:
             self._check_error(lib.olm_create_inbound_session(
                 self._session,
                 account._account,
-                message_buffer, len(message.ciphertext)
+                message_buffer, len(byte_ciphertext)
             ))
 
 
@@ -299,7 +305,7 @@ class OutboundSession(Session):
         return super().__new__(cls)
 
     def __init__(self, account, identity_key, one_time_key):
-        # type: (Account, str, str) -> None
+        # type: (Account, AnyStr, AnyStr) -> None
         """Create a new outbound olm session.
 
         Raises OlmSessionError on failure. If there weren't enough random bytes
@@ -308,8 +314,8 @@ class OutboundSession(Session):
         """
         super().__init__()
 
-        byte_id_key = bytes(identity_key, "utf-8")
-        byte_one_time = bytes(one_time_key, "utf-8")
+        byte_id_key = to_bytes(identity_key)
+        byte_one_time = to_bytes(one_time_key)
 
         session_random_length = lib.olm_create_outbound_session_random_length(
             self._session)

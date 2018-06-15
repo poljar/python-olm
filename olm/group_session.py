@@ -19,12 +19,12 @@ from __future__ import unicode_literals
 
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
-from typing import Optional, Union
+from typing import Optional, AnyStr
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
 
-from ._compat import URANDOM
+from ._compat import URANDOM, to_bytes
 from .finalize import track_for_finalization
 
 
@@ -49,7 +49,7 @@ class InboundGroupSession(object):
         return obj
 
     def __init__(self, session_key):
-        # type: (str) -> None
+        # type: (AnyStr) -> None
         """Create a new inbound group session.
 
         Raises OlmGroupSessionError on failure. If there weren't enough random
@@ -59,7 +59,7 @@ class InboundGroupSession(object):
         if False:  # pragma: no cover
             self._session = self._session  # type: ffi.cdata
 
-        byte_session_key = bytes(session_key, "utf-8")
+        byte_session_key = to_bytes(session_key)
 
         key_buffer = ffi.new("char[]", byte_session_key)
         ret = lib.olm_init_inbound_group_session(
@@ -120,11 +120,12 @@ class InboundGroupSession(object):
         raise OlmGroupSessionError(last_error)
 
     def decrypt(self, ciphertext):
-        # type: (str) -> str
+        # type: (AnyStr) -> str
         if not ciphertext:
             raise ValueError("Ciphertext can't be empty.")
 
-        byte_ciphertext = bytes(ciphertext, "utf-8")
+        byte_ciphertext = to_bytes(ciphertext)
+
         ciphertext_buffer = ffi.new("char[]", byte_ciphertext)
 
         max_plaintext_length = lib.olm_group_decrypt_max_plaintext_length(
@@ -182,11 +183,10 @@ class InboundGroupSession(object):
 
     @classmethod
     def import_session(cls, session_key):
-        # type: (Union[str, bytes]) -> InboundGroupSession
+        # type: (AnyStr) -> InboundGroupSession
         obj = cls.__new__(cls)
 
-        byte_session_key = (session_key if isinstance(session_key, bytes)
-                            else bytes(session_key, "utf-8"))
+        byte_session_key = to_bytes(session_key)
 
         key_buffer = ffi.new("char[]", byte_session_key)
         ret = lib.olm_import_inbound_group_session(
@@ -283,9 +283,8 @@ class OutboundGroupSession(object):
         return obj
 
     def encrypt(self, plaintext):
-        # type: (str) -> str
-        byte_plaintext = bytes(plaintext, "utf-8")
-
+        # type: (AnyStr) -> str
+        byte_plaintext = to_bytes(plaintext)
         message_length = lib.olm_group_encrypt_message_length(
             self._session, len(byte_plaintext)
         )

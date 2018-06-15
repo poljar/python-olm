@@ -20,12 +20,12 @@ from __future__ import unicode_literals
 import json
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
-from typing import Dict, Optional
+from typing import Dict, Optional, AnyStr
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
 
-from ._compat import URANDOM
+from ._compat import URANDOM, to_bytes
 from .finalize import track_for_finalization
 
 # This is imported only for type checking purposes
@@ -158,7 +158,7 @@ class Account(object):
         return json.loads(ffi.unpack(out_buffer, out_length).decode("utf-8"))
 
     def sign(self, message):
-        # type: (str) -> str
+        # type: (AnyStr) -> str
         """Signs a message with this account.
 
         Signs a message with the private ed25519 identity key of this account.
@@ -168,7 +168,7 @@ class Account(object):
         Args:
             message(str): The message to sign.
         """
-        bytes_message = bytes(message, "utf-8")
+        bytes_message = to_bytes(message)
         out_length = lib.olm_account_signature_length(self._account)
         message_buffer = ffi.new("char[]", bytes_message)
         out_buffer = ffi.new("char[]", out_length)
