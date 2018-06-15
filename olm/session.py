@@ -244,6 +244,9 @@ class Session(object):
 
     def matches(self, message, identity_key=None):
         # type: (_OlmMessage, Optional[AnyStr]) -> bool
+        if not message.ciphertext:
+            raise ValueError("Ciphertext can't be empty")
+
         ret = None
 
         byte_ciphertext = to_bytes(message.ciphertext)
@@ -282,6 +285,9 @@ class InboundSession(Session):
         for the session creation the error message for the exception will be
         NOT_ENOUGH_RANDOM.
         """
+        if not message.ciphertext:
+            raise ValueError("Ciphertext can't be empty")
+
         super().__init__()
         byte_ciphertext = to_bytes(message.ciphertext)
         message_buffer = ffi.new("char[]", byte_ciphertext)
@@ -315,6 +321,12 @@ class OutboundSession(Session):
         for the session creation the error message for the exception will be
         NOT_ENOUGH_RANDOM.
         """
+        if not identity_key:
+            raise ValueError("Identity key can't be empty")
+
+        if not one_time_key:
+            raise ValueError("One time key can't be empty")
+
         super().__init__()
 
         byte_id_key = to_bytes(identity_key)
