@@ -1,6 +1,6 @@
 import pytest
-from olm import (Account, InboundSession, OlmSessionError, OutboundSession,
-                 Session)
+from olm import (Account, InboundSession, OlmPreKeyMessage, OlmSessionError,
+                 OutboundSession, Session)
 
 
 class TestClass(object):
@@ -32,6 +32,10 @@ class TestClass(object):
         alice, bob, session = self._create_session()
         Session.from_pickle(session.pickle()).id == session.id
 
+    def test_session_invalid_pickle(self):
+        with pytest.raises(ValueError):
+            Session.from_pickle(b"")
+
     def test_wrong_passphrase_pickle(self):
         alice, bob, session = self._create_session()
         passphrase = "It's a secret to everybody"
@@ -53,6 +57,16 @@ class TestClass(object):
 
         bob_session = InboundSession(bob, message)
         assert plaintext == bob_session.decrypt(message)
+
+    def test_empty_message(self):
+        with pytest.raises(ValueError):
+            OlmPreKeyMessage("")
+        empty = OlmPreKeyMessage("x")
+        empty.ciphertext = ""
+        alice, bob, session = self._create_session()
+
+        with pytest.raises(ValueError):
+            session.decrypt(empty)
 
     def test_inbound_with_id(self):
         plaintext = "It's a secret to everybody"

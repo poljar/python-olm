@@ -18,6 +18,10 @@ class TestClass(object):
         assert (alice.identity_keys == Account.from_pickle(pickle)
                 .identity_keys)
 
+    def test_invalid_unpickle(self):
+        with pytest.raises(ValueError):
+            Account.from_pickle(b"")
+
     def test_passphrase_pickle(self):
         alice = Account()
         passphrase = "It's a secret to everybody"

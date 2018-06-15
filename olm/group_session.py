@@ -87,6 +87,9 @@ class InboundGroupSession(object):
     @classmethod
     def from_pickle(cls, pickle, passphrase=""):
         # type: (bytes, Optional[str]) -> InboundGroupSession
+        if not pickle:
+            raise ValueError("Pickle can't be empty")
+
         byte_passphrase = bytes(passphrase, "utf-8") if passphrase else b""
         passphrase_buffer = ffi.new("char[]", byte_passphrase)
         pickle_buffer = ffi.new("char[]", pickle)
@@ -117,6 +120,9 @@ class InboundGroupSession(object):
 
     def decrypt(self, ciphertext):
         # type: (str) -> str
+        if not ciphertext:
+            raise ValueError("Ciphertext can't be empty.")
+
         byte_ciphertext = bytes(ciphertext, "utf-8")
         ciphertext_buffer = ffi.new("char[]", byte_ciphertext)
 
@@ -255,6 +261,9 @@ class OutboundGroupSession(object):
     @classmethod
     def from_pickle(cls, pickle, passphrase=""):
         # type: (bytes, Optional[str]) -> OutboundGroupSession
+        if not pickle:
+            raise ValueError("Pickle can't be empty")
+
         byte_passphrase = bytes(passphrase, "utf-8") if passphrase else b""
         passphrase_buffer = ffi.new("char[]", byte_passphrase)
         pickle_buffer = ffi.new("char[]", pickle)

@@ -125,6 +125,9 @@ class Account(object):
             pickle(bytes): Base64 encoded byte string containing the pickled
                            account
         """
+        if not pickle:
+            raise ValueError("Pickle can't be empty")
+
         byte_key = bytes(passphrase, "utf-8") if passphrase else b""
         key_buffer = ffi.new("char[]", byte_key)
         pickle_buffer = ffi.new("char[]", pickle)

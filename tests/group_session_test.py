@@ -24,9 +24,23 @@ class TestClass(object):
         assert (session.id == OutboundGroupSession.from_pickle(
             pickle).id)
 
+    def test_invalid_unpickle(self):
+        with pytest.raises(ValueError):
+            OutboundGroupSession.from_pickle(b"")
+
+        with pytest.raises(ValueError):
+            InboundGroupSession.from_pickle(b"")
+
     def test_inbound_create(self):
         outbound = OutboundGroupSession()
         InboundGroupSession(outbound.session_key)
+
+    def test_invalid_decrypt(self):
+        outbound = OutboundGroupSession()
+        inbound = InboundGroupSession(outbound.session_key)
+
+        with pytest.raises(ValueError):
+            inbound.decrypt("")
 
     def test_inbound_pickle(self):
         outbound = OutboundGroupSession()

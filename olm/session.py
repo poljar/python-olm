@@ -40,6 +40,9 @@ class OlmSessionError(Exception):
 class _OlmMessage(object):
     def __init__(self, ciphertext, message_type):
         # type: (str, ffi.cdata) -> None
+        if not ciphertext:
+            raise ValueError("Ciphertext can't be empty")
+
         self.ciphertext = ciphertext
         self.message_type = message_type
 
@@ -148,6 +151,9 @@ class Session(object):
             pickle(bytes): Base64 encoded byte string containing the pickled
                            session
         """
+        if not pickle:
+            raise ValueError("Pickle can't be empty")
+
         byte_key = bytes(passphrase, "utf-8") if passphrase else b""
         key_buffer = ffi.new("char[]", byte_key)
         pickle_buffer = ffi.new("char[]", pickle)
@@ -199,6 +205,9 @@ class Session(object):
 
     def decrypt(self, message):
         # type: (_OlmMessage) -> str
+        if not message.ciphertext:
+            raise ValueError("Ciphertext can't be empty")
+
         byte_ciphertext = bytes(message.ciphertext, "utf-8")
         ciphertext_buffer = ffi.new("char[]", byte_ciphertext)
 
