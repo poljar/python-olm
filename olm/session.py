@@ -244,7 +244,10 @@ class Session(object):
         return bytes_to_native_str(ffi.unpack(id_buffer, id_length))
 
     def matches(self, message, identity_key=None):
-        # type: (_OlmMessage, Optional[AnyStr]) -> bool
+        # type: (OlmPreKeyMessage, Optional[AnyStr]) -> bool
+        if not isinstance(message, OlmPreKeyMessage):
+            raise TypeError("Matches can only be called with prekey messages.")
+
         if not message.ciphertext:
             raise ValueError("Ciphertext can't be empty")
 
