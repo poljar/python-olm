@@ -23,8 +23,9 @@ from typing import Optional, Union
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
-from .finalize import track_for_finalization
+
 from ._compat import URANDOM
+from .finalize import track_for_finalization
 
 
 def _clear_inbound_group_session(session):

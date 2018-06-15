@@ -25,11 +25,9 @@ This is designed for avoiding __del__.
 """
 from __future__ import print_function
 
-
 import sys
 import traceback
 import weakref
-
 
 __author__ = "Benjamin Peterson <benjamin@python.org>"
 

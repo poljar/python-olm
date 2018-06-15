@@ -24,8 +24,9 @@ from typing import Dict, Optional
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
+
+from ._compat import URANDOM
 from .finalize import track_for_finalization
-from ._compat  import URANDOM
 
 # This is imported only for type checking purposes
 if False:
