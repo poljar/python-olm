@@ -17,8 +17,6 @@ Examples:
 
 """
 
-from __future__ import unicode_literals
-
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
 from typing import Optional, AnyStr
