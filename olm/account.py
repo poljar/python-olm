@@ -20,6 +20,7 @@ from __future__ import unicode_literals
 import json
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
+from future.utils import bytes_to_native_str
 from typing import Dict, Optional, AnyStr
 
 # pylint: disable=no-name-in-module
@@ -81,8 +82,8 @@ class Account(object):
         if ret != lib.olm_error():
             return
 
-        last_error = ffi.string(
-            lib.olm_account_last_error(self._account)).decode("utf-8")
+        last_error = bytes_to_native_str(
+            ffi.string((lib.olm_account_last_error(self._account))))
 
         raise OlmAccountError(last_error)
 
@@ -177,7 +178,7 @@ class Account(object):
             lib.olm_account_sign(self._account, message_buffer,
                                  len(bytes_message), out_buffer, out_length))
 
-        return ffi.unpack(out_buffer, out_length).decode("utf-8")
+        return bytes_to_native_str(ffi.unpack(out_buffer, out_length))
 
     @property
     def max_one_time_keys(self):

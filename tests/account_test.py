@@ -4,9 +4,18 @@ import pytest
 from hypothesis import given
 from hypothesis.strategies import text
 from olm import Account, OlmAccountError, OlmVerifyError, ed25519_verify
+from olm._compat import to_bytes
 
 
 class TestClass(object):
+    def test_to_bytes(self):
+        assert isinstance(to_bytes("a"), bytes)
+        assert isinstance(to_bytes(u"a"), bytes)
+        assert isinstance(to_bytes(b"a"), bytes)
+        assert isinstance(to_bytes(r"a"), bytes)
+        with pytest.raises(TypeError):
+            to_bytes(0)
+
     def test_account_creation(self):
         alice = Account()
         assert alice.identity_keys

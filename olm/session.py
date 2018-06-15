@@ -22,6 +22,7 @@ from __future__ import unicode_literals
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
 from typing import Optional, AnyStr
+from future.utils import bytes_to_native_str
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
@@ -108,9 +109,8 @@ class Session(object):
         if ret != lib.olm_error():
             return
 
-        last_error = ffi.string(
-            lib.olm_session_last_error(self._session)
-        ).decode("utf-8")
+        last_error = bytes_to_native_str(
+            ffi.string(lib.olm_session_last_error(self._session)))
 
         raise OlmSessionError(last_error)
 
@@ -198,12 +198,16 @@ class Session(object):
 
         if message_type == lib.OLM_MESSAGE_TYPE_PRE_KEY:
             return OlmPreKeyMessage(
-                ffi.unpack(ciphertext_buffer,
-                           ciphertext_length).decode("utf-8"))
+                bytes_to_native_str(ffi.unpack(
+                    ciphertext_buffer,
+                    ciphertext_length
+                )))
         elif message_type == lib.OLM_MESSAGE_TYPE_MESSAGE:
             return OlmMessage(
-                ffi.unpack(ciphertext_buffer,
-                           ciphertext_length).decode("utf-8"))
+                bytes_to_native_str(ffi.unpack(
+                    ciphertext_buffer,
+                    ciphertext_length
+                )))
         else:  # pragma: no cover
             raise ValueError("Unknown message type")
 
@@ -226,7 +230,8 @@ class Session(object):
             len(byte_ciphertext), plaintext_buffer, max_plaintext_length
         )
         self._check_error(plaintext_length)
-        return ffi.unpack(plaintext_buffer, plaintext_length).decode("utf-8")
+        return bytes_to_native_str(
+            ffi.unpack(plaintext_buffer, plaintext_length))
 
     @property
     def id(self):
@@ -237,7 +242,7 @@ class Session(object):
         self._check_error(
             lib.olm_session_id(self._session, id_buffer, id_length)
         )
-        return ffi.unpack(id_buffer, id_length).decode("utf-8")
+        return bytes_to_native_str(ffi.unpack(id_buffer, id_length))
 
     def matches(self, message, identity_key=None):
         # type: (_OlmMessage, Optional[AnyStr]) -> bool

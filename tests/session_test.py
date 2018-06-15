@@ -19,6 +19,7 @@ class TestClass(object):
         assert session_1
         assert session_2
         assert session_1.id != session_2.id
+        assert isinstance(session_1.id, str)
 
     def test_session_clear(self):
         _, _, session = self._create_session()

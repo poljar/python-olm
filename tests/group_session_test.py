@@ -1,5 +1,3 @@
-from builtins import str
-
 import pytest
 from olm import InboundGroupSession, OlmGroupSessionError, OutboundGroupSession
 

@@ -19,6 +19,7 @@ from __future__ import unicode_literals
 
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
+from future.utils import bytes_to_native_str
 from typing import Optional, AnyStr
 
 # pylint: disable=no-name-in-module
@@ -113,9 +114,8 @@ class InboundGroupSession(object):
         if ret != lib.olm_error():
             return
 
-        last_error = ffi.string(
-            lib.olm_inbound_group_session_last_error(self._session)
-        ).decode("utf-8")
+        last_error = bytes_to_native_str(ffi.string(
+            lib.olm_inbound_group_session_last_error(self._session)))
 
         raise OlmGroupSessionError(last_error)
 
@@ -143,10 +143,10 @@ class InboundGroupSession(object):
 
         self._check_error(plaintext_length)
 
-        return ffi.unpack(
+        return bytes_to_native_str(ffi.unpack(
             plaintext_buffer,
             plaintext_length
-        ).decode("utf-8")
+        ))
 
     @property
     def id(self):
@@ -159,7 +159,7 @@ class InboundGroupSession(object):
             id_length
         )
         self._check_error(ret)
-        return ffi.unpack(id_buffer, id_length).decode("utf-8")
+        return bytes_to_native_str(ffi.unpack(id_buffer, id_length))
 
     @property
     def first_known_index(self):
@@ -179,7 +179,7 @@ class InboundGroupSession(object):
             message_index
         )
         self._check_error(ret)
-        return ffi.unpack(export_buffer, export_length).decode("utf-8")
+        return bytes_to_native_str(ffi.unpack(export_buffer, export_length))
 
     @classmethod
     def import_session(cls, session_key):
@@ -238,9 +238,9 @@ class OutboundGroupSession(object):
         if ret != lib.olm_error():
             return
 
-        last_error = ffi.string(
+        last_error = bytes_to_native_str(ffi.string(
             lib.olm_outbound_group_session_last_error(self._session)
-        ).decode("utf-8")
+        ))
 
         raise OlmGroupSessionError(last_error)
 
@@ -299,7 +299,7 @@ class OutboundGroupSession(object):
             message_buffer, message_length,
         )
         self._check_error(ret)
-        return ffi.unpack(message_buffer, message_length).decode("utf-8")
+        return bytes_to_native_str(ffi.unpack(message_buffer, message_length))
 
     @property
     def id(self):
@@ -314,7 +314,7 @@ class OutboundGroupSession(object):
         )
         self._check_error(ret)
 
-        return ffi.unpack(id_buffer, id_length).decode("utf-8")
+        return bytes_to_native_str(ffi.unpack(id_buffer, id_length))
 
     @property
     def message_index(self):
@@ -334,4 +334,4 @@ class OutboundGroupSession(object):
         )
         self._check_error(ret)
 
-        return ffi.unpack(key_buffer, key_length).decode("utf-8")
+        return bytes_to_native_str(ffi.unpack(key_buffer, key_length))
