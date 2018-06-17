@@ -63,7 +63,7 @@ class _Utility(object):
                 cls._utility)).decode("utf-8")))
 
     @classmethod
-    def ed25519_verify(cls, key, message, signature):
+    def _ed25519_verify(cls, key, message, signature):
         if not cls._utility:
             cls._allocate()
 
@@ -81,9 +81,10 @@ def ed25519_verify(key, message, signature):
     """Verify an ed25519 signature.
 
     Raises an OlmVerifyError if verification fails.
+
     Args:
         key(str): The ed25519 public key used for signing.
         message(str): The signed message.
         signature(bytes): The message signature.
     """
-    return _Utility.ed25519_verify(key, message, signature)
+    return _Utility._ed25519_verify(key, message, signature)
