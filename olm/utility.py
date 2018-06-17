@@ -10,6 +10,7 @@ It only contains the ed25519_verify function for signature verification.
 Examples:
     alice = Account()
 
+    message = "Test"
     signature = alice.sign(message)
     signing_key = alice.identity_keys["ed25519"]
 

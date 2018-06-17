@@ -4,15 +4,12 @@
 # Copyright © 2018 Damir Jelić <poljar@termina.org.uk>
 """libolm Group session module.
 
-This module contains the group session of the olm library. It contains a single
-Account class which handles the creation of new accounts as well as the storing
-and restoring of them.
+This module contains the group session part of the Olm library. It contains two
+classes for creating inbound and outbound group sessions.
 
 Examples:
-    acc = Account()
-    account.identity_keys()
-    account.generate_one_time_keys(1)
-
+    outbound = OutboundGroupSession()
+    InboundGroupSession(outbound.session_key)
 """
 
 # pylint: disable=redefined-builtin,unused-import
@@ -41,6 +38,8 @@ class OlmGroupSessionError(Exception):
 
 
 class InboundGroupSession(object):
+    """Inbound group session for encrypted multiuser communication."""
+
     def __new__(cls, session_key=None):
         obj = super().__new__(cls)
         obj._buf = ffi.new("char[]", lib.olm_inbound_group_session_size())
@@ -51,10 +50,12 @@ class InboundGroupSession(object):
     def __init__(self, session_key):
         # type: (AnyStr) -> None
         """Create a new inbound group session.
+        Start a new inbound group session, from a key exported from
+        a outbound group session.
 
-        Raises OlmGroupSessionError on failure. If there weren't enough random
-        bytes for the session creation the error message for the exception will
-        be NOT_ENOUGH_RANDOM.
+        Raises OlmGroupSessionError on failure. The error message of the
+        exception will be "OLM_INVALID_BASE64" if the session key is not valid
+        base64 and "OLM_BAD_SESSION_KEY" if the session key is invalid.
         """
         if False:  # pragma: no cover
             self._session = self._session  # type: ffi.cdata
@@ -69,6 +70,16 @@ class InboundGroupSession(object):
 
     def pickle(self, passphrase=""):
         # type: (Optional[str]) -> bytes
+        """Store an inbound group session.
+
+        Stores a group session as a base64 string. Encrypts the session using
+        the supplied passphrase. Returns a byte object containing the base64
+        encoded string of the pickled session.
+
+        Args:
+            passphrase(str, optional): The passphrase to be used to encrypt
+                the session.
+        """
         byte_passphrase = bytes(passphrase, "utf-8") if passphrase else b""
 
         passphrase_buffer = ffi.new("char[]", byte_passphrase)
@@ -88,6 +99,20 @@ class InboundGroupSession(object):
     @classmethod
     def from_pickle(cls, pickle, passphrase=""):
         # type: (bytes, Optional[str]) -> InboundGroupSession
+        """Load a previously stored inbound group session.
+
+        Loads a inbound group session from a pickled base64 string and returns
+        a InboundGroupSession object. Decrypts the session using the supplied
+        passphrase. Raises OlmSessionError on failure. If the passphrase
+        doesn't match the one used to encrypt the session then the error
+        message for the exception will be "BAD_ACCOUNT_KEY". If the base64
+        couldn't be decoded then the error message will be "INVALID_BASE64".
+
+        Args:
+            pickle(bytes): Base64 encoded byte string containing the pickled
+                session
+            passphrase(str, optional): The passphrase used to encrypt the
+        """
         if not pickle:
             raise ValueError("Pickle can't be empty")
 
@@ -120,6 +145,25 @@ class InboundGroupSession(object):
 
     def decrypt(self, ciphertext):
         # type: (AnyStr) -> str
+        """Decrypt a message
+
+        Returns the decrypted plain-text, or raises OlmGroupSessionError on
+        failure.
+        On failure the error message of the exception  will be:
+           OLM_INVALID_BASE64         if the message is not valid base-64
+           OLM_BAD_MESSAGE_VERSION    if the message was encrypted with an
+               unsupported version of the protocol
+           OLM_BAD_MESSAGE_FORMAT     if the message headers could not be
+               decoded
+           OLM_BAD_MESSAGE_MAC        if the message could not be verified
+           OLM_UNKNOWN_MESSAGE_INDEX  if we do not have a session key
+               corresponding to the message's index (ie, it was sent before
+               the session key was shared with us)
+
+        Args:
+            ciphertext(str): Base64 encoded ciphertext containing the encrypted
+                message
+        """
         if not ciphertext:
             raise ValueError("Ciphertext can't be empty.")
 
@@ -150,6 +194,7 @@ class InboundGroupSession(object):
     @property
     def id(self):
         # type: () -> str
+        """str: A base64 encoded identifier for this session."""
         id_length = lib.olm_inbound_group_session_id_length(self._session)
         id_buffer = ffi.new("char[]", id_length)
         ret = lib.olm_inbound_group_session_id(
@@ -163,10 +208,27 @@ class InboundGroupSession(object):
     @property
     def first_known_index(self):
         # type: () -> int
+        """int: The first message index we know how to decrypt."""
         return lib.olm_inbound_group_session_first_known_index(self._session)
 
     def export_session(self, message_index):
         # type: (int) -> str
+        """Export an inbound group session
+
+        Export the base64-encoded ratchet key for this session, at the given
+        index, in a format which can be used by import_session().
+
+        Raises OlmGroupSessionError on failure. The error message for the
+        exception will be:
+            OLM_UNKNOWN_MESSAGE_INDEX if we do not have a session key
+            corresponding to the given index (ie, it was sent before the
+            session key was shared with us)
+
+        Args:
+            message_index(int): The message index at which the session should
+                be exported.
+        """
+
         export_length = lib.olm_export_inbound_group_session_length(
             self._session)
 
@@ -183,6 +245,18 @@ class InboundGroupSession(object):
     @classmethod
     def import_session(cls, session_key):
         # type: (AnyStr) -> InboundGroupSession
+        """Create a InboundGroupSession from an exported session key.
+
+        Creates a InboundGroupSession with an previously exported session key,
+        raises OlmGroupSessionError on failure. The error message for the
+        exception will be:
+            OLM_INVALID_BASE64  if the session_key is not valid base64
+            OLM_BAD_SESSION_KEY if the session_key is invalid
+
+        Args:
+            session_key(str): The exported session key with which the inbound
+                group session will be created
+        """
         obj = cls.__new__(cls)
 
         byte_session_key = to_bytes(session_key)
@@ -199,6 +273,8 @@ class InboundGroupSession(object):
 
 
 class OutboundGroupSession(object):
+    """Outbound group session for encrypted multiuser communication."""
+
     def __new__(cls):
         obj = super().__new__(cls)
         obj._buf = ffi.new("char[]", lib.olm_outbound_group_session_size())
@@ -212,11 +288,11 @@ class OutboundGroupSession(object):
 
     def __init__(self):
         # type: () -> None
-        """Create a new inbound group session.
+        """Create a new outbound group session.
 
-        Raises OlmGroupSessionError on failure. If there weren't enough random
-        bytes for the session creation the error message for the exception will
-        be NOT_ENOUGH_RANDOM.
+        Start a new outbound group session. Raises OlmGroupSessionError on
+        failure. If there weren't enough random bytes for the session creation
+        the error message for the exception will be NOT_ENOUGH_RANDOM.
         """
         if False:  # pragma: no cover
             self._session = self._session  # type: ffi.cdata
@@ -245,6 +321,16 @@ class OutboundGroupSession(object):
 
     def pickle(self, passphrase=""):
         # type: (Optional[str]) -> bytes
+        """Store an outbound group session.
+
+        Stores a group session as a base64 string. Encrypts the session using
+        the supplied passphrase. Returns a byte object containing the base64
+        encoded string of the pickled session.
+
+        Args:
+            passphrase(str, optional): The passphrase to be used to encrypt
+                the session.
+        """
         byte_passphrase = bytes(passphrase, "utf-8") if passphrase else b""
         passphrase_buffer = ffi.new("char[]", byte_passphrase)
         pickle_length = lib.olm_pickle_outbound_group_session_length(
@@ -261,6 +347,20 @@ class OutboundGroupSession(object):
     @classmethod
     def from_pickle(cls, pickle, passphrase=""):
         # type: (bytes, Optional[str]) -> OutboundGroupSession
+        """Load a previously stored outbound group session.
+
+        Loads a outbound group session from a pickled base64 string and returns
+        a OutboundGroupSession object. Decrypts the session using the supplied
+        passphrase. Raises OlmSessionError on failure. If the passphrase
+        doesn't match the one used to encrypt the session then the error
+        message for the exception will be "BAD_ACCOUNT_KEY". If the base64
+        couldn't be decoded then the error message will be "INVALID_BASE64".
+
+        Args:
+            pickle(bytes): Base64 encoded byte string containing the pickled
+                session
+            passphrase(str, optional): The passphrase used to encrypt the
+        """
         if not pickle:
             raise ValueError("Pickle can't be empty")
 
@@ -283,6 +383,14 @@ class OutboundGroupSession(object):
 
     def encrypt(self, plaintext):
         # type: (AnyStr) -> str
+        """Encrypt a message.
+
+        Returns the encrypted ciphertext.
+
+        Args:
+            plaintext(str): A string that will be encrypted using the group
+                session.
+        """
         byte_plaintext = to_bytes(plaintext)
         message_length = lib.olm_group_encrypt_message_length(
             self._session, len(byte_plaintext)
@@ -303,6 +411,7 @@ class OutboundGroupSession(object):
     @property
     def id(self):
         # type: () -> str
+        """str: A base64 encoded identifier for this session."""
         id_length = lib.olm_outbound_group_session_id_length(self._session)
         id_buffer = ffi.new("char[]", id_length)
 
@@ -318,11 +427,21 @@ class OutboundGroupSession(object):
     @property
     def message_index(self):
         # type: () -> int
+        """int: The current message index of the session.
+
+        Each message is encrypted with an increasing index. This is the index
+        for the next message.
+        """
         return lib.olm_outbound_group_session_message_index(self._session)
 
     @property
     def session_key(self):
         # type: () -> str
+        """The base64-encoded current ratchet key for this session.
+
+        Each message is encrypted with a different ratchet key. This function
+        returns the ratchet key that will be used for the next message.
+        """
         key_length = lib.olm_outbound_group_session_key_length(self._session)
         key_buffer = ffi.new("char[]", key_length)
 

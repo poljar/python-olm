@@ -55,9 +55,7 @@ class Account(object):
         # type: () -> None
         """Create a new olm account.
 
-        The contructor creates a new identity key pair unless the arguments buf
-        and account are provided. The arguments should never be provided by the
-        user, use from_pickle instead.
+        Creates a new account and its matching identity key pair.
 
         Raises OlmAccountError on failure. If there weren't enough random bytes
         for the account creation the error message for the exception will be
@@ -96,7 +94,8 @@ class Account(object):
         failure.
 
         Args:
-            passphrase(str): The passphrase to be used to encrypt the account.
+            passphrase(str, optional): The passphrase to be used to encrypt
+                the account.
         """
         byte_key = bytes(passphrase, "utf-8") if passphrase else b""
         key_buffer = ffi.new("char[]", byte_key)
@@ -122,9 +121,10 @@ class Account(object):
         then the error message will be "INVALID_BASE64".
 
         Args:
-            passphrase(str): The passphrase used to encrypt the account.
             pickle(bytes): Base64 encoded byte string containing the pickled
-                           account
+                account
+            passphrase(str, optional): The passphrase used to encrypt the
+                account.
         """
         if not pickle:
             raise ValueError("Pickle can't be empty")
@@ -144,11 +144,7 @@ class Account(object):
     @property
     def identity_keys(self):
         # type: () -> Dict[str, str]
-        """Get the public identity keys of the account.
-
-        Returns a dict containing the public identity keys of the account.
-        Raises OlmAccountError on failure.
-        """
+        """dict: Public part of the identity keys of the account."""
         out_length = lib.olm_account_identity_keys_length(self._account)
         out_buffer = ffi.new("char[]", out_length)
 
@@ -182,7 +178,7 @@ class Account(object):
     @property
     def max_one_time_keys(self):
         # type: () -> int
-        """Get the maximum number of one time keys the account can store."""
+        """int: The maximum number of one time keys the account can store."""
         return lib.olm_account_max_number_of_one_time_keys(self._account)
 
     def mark_keys_as_published(self):
@@ -214,11 +210,7 @@ class Account(object):
     @property
     def one_time_keys(self):
         # type: () -> Dict[str, Dict[str, str]]
-        """Get the public one time keys of the account.
-
-        Returns a dict containing the public identity keys of the account.
-        Raises OlmAccountError on failure.
-        """
+        """dict: The public part of the one time keys for this account."""
         out_length = lib.olm_account_one_time_keys_length(self._account)
         out_buffer = ffi.new("char[]", out_length)
 
@@ -236,6 +228,10 @@ class Account(object):
         Raises OlmAccountError on failure. If the account doesn't have any
         matching one time keys then the error message of the exception will be
         "BAD_MESSAGE_KEY_ID".
+
+        Args:
+            session(Session): An Olm Session object that was created with this
+            account.
         """
         self._check_error(lib.olm_remove_one_time_keys(self._account,
                                                        session._session))
