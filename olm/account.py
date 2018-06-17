@@ -9,9 +9,9 @@ Account class which handles the creation of new accounts as well as the storing
 and restoring of them.
 
 Examples:
-    acc = Account()
-    account.identity_keys()
-    account.generate_one_time_keys(1)
+    >>> acc = Account()
+    >>> account.identity_keys()
+    >>> account.generate_one_time_keys(1)
 
 """
 

@@ -8,16 +8,13 @@ This module contains utilities for olm.
 It only contains the ed25519_verify function for signature verification.
 
 Examples:
-    alice = Account()
+    >>> alice = Account()
 
-    message = "Test"
-    signature = alice.sign(message)
-    signing_key = alice.identity_keys["ed25519"]
+    >>> message = "Test"
+    >>> signature = alice.sign(message)
+    >>> signing_key = alice.identity_keys["ed25519"]
 
-    assert signature
-    assert signing_key
-
-    ed25519_verify(signing_key, message, signature)
+    >>> ed25519_verify(signing_key, message, signature)
 
 """
 

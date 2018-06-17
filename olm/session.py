@@ -10,13 +10,13 @@ It is used to establish a peer to peer encrypted communication channel between
 two Olm accounts.
 
 Examples:
-    alice = Account()
-    bob = Account()
-    bob.generate_one_time_keys(1)
-    id_key = bob.identity_keys['curve25519']
-    one_time = list(bob.one_time_keys["curve25519"].values())[0]
-    session = OutboundSession(alice, id_key, one_time)
-    s = OutboundSession(alice, id_key, one_time)
+    >>> alice = Account()
+    >>> bob = Account()
+    >>> bob.generate_one_time_keys(1)
+    >>> id_key = bob.identity_keys['curve25519']
+    >>> one_time = list(bob.one_time_keys["curve25519"].values())[0]
+    >>> session = OutboundSession(alice, id_key, one_time)
+    >>> s = OutboundSession(alice, id_key, one_time)
 
 """
 

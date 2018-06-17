@@ -8,8 +8,8 @@ This module contains the group session part of the Olm library. It contains two
 classes for creating inbound and outbound group sessions.
 
 Examples:
-    outbound = OutboundGroupSession()
-    InboundGroupSession(outbound.session_key)
+    >>> outbound = OutboundGroupSession()
+    >>> InboundGroupSession(outbound.session_key)
 """
 
 # pylint: disable=redefined-builtin,unused-import
@@ -150,15 +150,16 @@ class InboundGroupSession(object):
         Returns the decrypted plain-text, or raises OlmGroupSessionError on
         failure.
         On failure the error message of the exception  will be:
-           OLM_INVALID_BASE64         if the message is not valid base-64
-           OLM_BAD_MESSAGE_VERSION    if the message was encrypted with an
-               unsupported version of the protocol
-           OLM_BAD_MESSAGE_FORMAT     if the message headers could not be
-               decoded
-           OLM_BAD_MESSAGE_MAC        if the message could not be verified
-           OLM_UNKNOWN_MESSAGE_INDEX  if we do not have a session key
-               corresponding to the message's index (ie, it was sent before
-               the session key was shared with us)
+
+        * OLM_INVALID_BASE64         if the message is not valid base-64
+        * OLM_BAD_MESSAGE_VERSION    if the message was encrypted with an
+            unsupported version of the protocol
+        * OLM_BAD_MESSAGE_FORMAT     if the message headers could not be
+            decoded
+        * OLM_BAD_MESSAGE_MAC        if the message could not be verified
+        * OLM_UNKNOWN_MESSAGE_INDEX  if we do not have a session key
+            corresponding to the message's index (ie, it was sent before
+            the session key was shared with us)
 
         Args:
             ciphertext(str): Base64 encoded ciphertext containing the encrypted
@@ -220,7 +221,8 @@ class InboundGroupSession(object):
 
         Raises OlmGroupSessionError on failure. The error message for the
         exception will be:
-            OLM_UNKNOWN_MESSAGE_INDEX if we do not have a session key
+
+        * OLM_UNKNOWN_MESSAGE_INDEX if we do not have a session key
             corresponding to the given index (ie, it was sent before the
             session key was shared with us)
 
@@ -250,8 +252,9 @@ class InboundGroupSession(object):
         Creates a InboundGroupSession with an previously exported session key,
         raises OlmGroupSessionError on failure. The error message for the
         exception will be:
-            OLM_INVALID_BASE64  if the session_key is not valid base64
-            OLM_BAD_SESSION_KEY if the session_key is invalid
+
+        * OLM_INVALID_BASE64  if the session_key is not valid base64
+        * OLM_BAD_SESSION_KEY if the session_key is invalid
 
         Args:
             session_key(str): The exported session key with which the inbound

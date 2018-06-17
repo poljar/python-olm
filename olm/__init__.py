@@ -5,10 +5,9 @@
 """
 Olm Python bindings
 ~~~~~~~~~~~~~~~~~~~~~
-This package implements python bindings for the libolm C library.
-:copyright: (c) 2015-2017 by OpenMarket Ltd
-:copyright: (c) 2018 by Damir Jelić
-:license: Apache 2.0, see LICENSE for more details.
+|  This package implements python bindings for the libolm C library.
+|  © Copyright 2015-2017 by OpenMarket Ltd
+|  © Copyright 2018 by Damir Jelić
 """
 from .utility import ed25519_verify, OlmVerifyError
 from .account import Account, OlmAccountError
