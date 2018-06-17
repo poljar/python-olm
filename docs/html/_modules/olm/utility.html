@@ -1,0 +1,164 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>olm.utility &#8212; python-olm 2.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for olm.utility</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># libolm python bindings</span>
+<span class="c1"># Copyright © 2015-2017 OpenMarket Ltd</span>
+<span class="c1"># Copyright © 2018 Damir Jelić &lt;poljar@termina.org.uk&gt;</span>
+<span class="sd">&quot;&quot;&quot;libolm Utility module.</span>
+
+<span class="sd">This module contains utilities for olm.</span>
+<span class="sd">It only contains the ed25519_verify function for signature verification.</span>
+
+<span class="sd">Examples:</span>
+<span class="sd">    &gt;&gt;&gt; alice = Account()</span>
+
+<span class="sd">    &gt;&gt;&gt; message = &quot;Test&quot;</span>
+<span class="sd">    &gt;&gt;&gt; signature = alice.sign(message)</span>
+<span class="sd">    &gt;&gt;&gt; signing_key = alice.identity_keys[&quot;ed25519&quot;]</span>
+
+<span class="sd">    &gt;&gt;&gt; ed25519_verify(signing_key, message, signature)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># pylint: disable=redefined-builtin,unused-import</span>
+<span class="kn">from</span> <span class="nn">builtins</span> <span class="k">import</span> <span class="nb">bytes</span>
+
+<span class="c1"># pylint: disable=no-name-in-module</span>
+<span class="kn">from</span> <span class="nn">_libolm</span> <span class="k">import</span> <span class="n">ffi</span><span class="p">,</span> <span class="n">lib</span>  <span class="c1"># type: ignore</span>
+
+<span class="kn">from</span> <span class="nn">._finalize</span> <span class="k">import</span> <span class="n">track_for_finalization</span>
+
+
+<span class="k">def</span> <span class="nf">_clear_utility</span><span class="p">(</span><span class="n">utility</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="n">lib</span><span class="o">.</span><span class="n">olm_clear_utility</span><span class="p">(</span><span class="n">utility</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="OlmVerifyError"><a class="viewcode-back" href="../../olm.html#olm.utility.OlmVerifyError">[docs]</a><span class="k">class</span> <span class="nc">OlmVerifyError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;libolm signature verification exception.&quot;&quot;&quot;</span></div>
+
+
+<span class="k">class</span> <span class="nc">_Utility</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="c1"># pylint: disable=too-few-public-methods</span>
+    <span class="sd">&quot;&quot;&quot;libolm Utility class.&quot;&quot;&quot;</span>
+
+    <span class="n">_buf</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_utility</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_allocate</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="c1"># type: () -&gt; None</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_buf</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_utility_size</span><span class="p">())</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_utility</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_utility</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_buf</span><span class="p">)</span>
+        <span class="n">track_for_finalization</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_utility</span><span class="p">,</span> <span class="n">_clear_utility</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_check_error</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ret</span><span class="p">):</span>
+        <span class="c1"># type: (int) -&gt; None</span>
+        <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_error</span><span class="p">():</span>
+            <span class="k">return</span>
+
+        <span class="k">raise</span> <span class="n">OlmVerifyError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">ffi</span><span class="o">.</span><span class="n">string</span><span class="p">(</span><span class="n">lib</span><span class="o">.</span><span class="n">olm_utility_last_error</span><span class="p">(</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">_utility</span><span class="p">))</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)))</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_ed25519_verify</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">signature</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_utility</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_allocate</span><span class="p">()</span>
+
+        <span class="n">byte_key</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="n">byte_message</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="n">byte_signature</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">signature</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span>
+            <span class="n">lib</span><span class="o">.</span><span class="n">olm_ed25519_verify</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_utility</span><span class="p">,</span> <span class="n">byte_key</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_key</span><span class="p">),</span>
+                                   <span class="n">byte_message</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_message</span><span class="p">),</span>
+                                   <span class="n">byte_signature</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_signature</span><span class="p">)))</span>
+
+
+<div class="viewcode-block" id="ed25519_verify"><a class="viewcode-back" href="../../olm.html#olm.utility.ed25519_verify">[docs]</a><span class="k">def</span> <span class="nf">ed25519_verify</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">signature</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Verify an ed25519 signature.</span>
+
+<span class="sd">    Raises an OlmVerifyError if verification fails.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        key(str): The ed25519 public key used for signing.</span>
+<span class="sd">        message(str): The signed message.</span>
+<span class="sd">        signature(bytes): The message signature.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_Utility</span><span class="o">.</span><span class="n">_ed25519_verify</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">signature</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Damir Jelić.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

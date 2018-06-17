@@ -1,0 +1,535 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>olm.group_session &#8212; python-olm 2.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for olm.group_session</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># libolm python bindings</span>
+<span class="c1"># Copyright © 2015-2017 OpenMarket Ltd</span>
+<span class="c1"># Copyright © 2018 Damir Jelić &lt;poljar@termina.org.uk&gt;</span>
+<span class="sd">&quot;&quot;&quot;libolm Group session module.</span>
+
+<span class="sd">This module contains the group session part of the Olm library. It contains two</span>
+<span class="sd">classes for creating inbound and outbound group sessions.</span>
+
+<span class="sd">Examples:</span>
+<span class="sd">    &gt;&gt;&gt; outbound = OutboundGroupSession()</span>
+<span class="sd">    &gt;&gt;&gt; InboundGroupSession(outbound.session_key)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># pylint: disable=redefined-builtin,unused-import</span>
+<span class="kn">from</span> <span class="nn">builtins</span> <span class="k">import</span> <span class="nb">bytes</span><span class="p">,</span> <span class="nb">super</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">future.utils</span> <span class="k">import</span> <span class="n">bytes_to_native_str</span>
+
+<span class="c1"># pylint: disable=no-name-in-module</span>
+<span class="kn">from</span> <span class="nn">_libolm</span> <span class="k">import</span> <span class="n">ffi</span><span class="p">,</span> <span class="n">lib</span>  <span class="c1"># type: ignore</span>
+
+<span class="kn">from</span> <span class="nn">._compat</span> <span class="k">import</span> <span class="n">URANDOM</span><span class="p">,</span> <span class="n">to_bytes</span>
+<span class="kn">from</span> <span class="nn">._finalize</span> <span class="k">import</span> <span class="n">track_for_finalization</span>
+
+
+<span class="k">def</span> <span class="nf">_clear_inbound_group_session</span><span class="p">(</span><span class="n">session</span><span class="p">):</span>
+    <span class="n">lib</span><span class="o">.</span><span class="n">olm_clear_inbound_group_session</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_clear_outbound_group_session</span><span class="p">(</span><span class="n">session</span><span class="p">):</span>
+    <span class="n">lib</span><span class="o">.</span><span class="n">olm_clear_outbound_group_session</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="OlmGroupSessionError"><a class="viewcode-back" href="../../olm.html#olm.group_session.OlmGroupSessionError">[docs]</a><span class="k">class</span> <span class="nc">OlmGroupSessionError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;libolm Group session error exception.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="InboundGroupSession"><a class="viewcode-back" href="../../olm.html#olm.group_session.InboundGroupSession">[docs]</a><span class="k">class</span> <span class="nc">InboundGroupSession</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Inbound group session for encrypted multiuser communication.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">session_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_buf</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_inbound_group_session_size</span><span class="p">())</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_session</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_inbound_group_session</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">_buf</span><span class="p">)</span>
+        <span class="n">track_for_finalization</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span> <span class="n">_clear_inbound_group_session</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session_key</span><span class="p">):</span>
+        <span class="c1"># type: (AnyStr) -&gt; None</span>
+        <span class="sd">&quot;&quot;&quot;Create a new inbound group session.</span>
+<span class="sd">        Start a new inbound group session, from a key exported from</span>
+<span class="sd">        a outbound group session.</span>
+
+<span class="sd">        Raises OlmGroupSessionError on failure. The error message of the</span>
+<span class="sd">        exception will be &quot;OLM_INVALID_BASE64&quot; if the session key is not valid</span>
+<span class="sd">        base64 and &quot;OLM_BAD_SESSION_KEY&quot; if the session key is invalid.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span>  <span class="c1"># type: ffi.cdata</span>
+
+        <span class="n">byte_session_key</span> <span class="o">=</span> <span class="n">to_bytes</span><span class="p">(</span><span class="n">session_key</span><span class="p">)</span>
+
+        <span class="n">key_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">byte_session_key</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_init_inbound_group_session</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span> <span class="n">key_buffer</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_session_key</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+
+<div class="viewcode-block" id="InboundGroupSession.pickle"><a class="viewcode-back" href="../../olm.html#olm.group_session.InboundGroupSession.pickle">[docs]</a>    <span class="k">def</span> <span class="nf">pickle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="c1"># type: (Optional[str]) -&gt; bytes</span>
+        <span class="sd">&quot;&quot;&quot;Store an inbound group session.</span>
+
+<span class="sd">        Stores a group session as a base64 string. Encrypts the session using</span>
+<span class="sd">        the supplied passphrase. Returns a byte object containing the base64</span>
+<span class="sd">        encoded string of the pickled session.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            passphrase(str, optional): The passphrase to be used to encrypt</span>
+<span class="sd">                the session.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">byte_passphrase</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">passphrase</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">passphrase</span> <span class="k">else</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+
+        <span class="n">passphrase_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">byte_passphrase</span><span class="p">)</span>
+        <span class="n">pickle_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_pickle_inbound_group_session_length</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">)</span>
+        <span class="n">pickle_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">pickle_length</span><span class="p">)</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_pickle_inbound_group_session</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span> <span class="n">passphrase_buffer</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_passphrase</span><span class="p">),</span>
+            <span class="n">pickle_buffer</span><span class="p">,</span> <span class="n">pickle_length</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ffi</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">pickle_buffer</span><span class="p">,</span> <span class="n">pickle_length</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="InboundGroupSession.from_pickle"><a class="viewcode-back" href="../../olm.html#olm.group_session.InboundGroupSession.from_pickle">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_pickle</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pickle</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="c1"># type: (bytes, Optional[str]) -&gt; InboundGroupSession</span>
+        <span class="sd">&quot;&quot;&quot;Load a previously stored inbound group session.</span>
+
+<span class="sd">        Loads a inbound group session from a pickled base64 string and returns</span>
+<span class="sd">        a InboundGroupSession object. Decrypts the session using the supplied</span>
+<span class="sd">        passphrase. Raises OlmSessionError on failure. If the passphrase</span>
+<span class="sd">        doesn&#39;t match the one used to encrypt the session then the error</span>
+<span class="sd">        message for the exception will be &quot;BAD_ACCOUNT_KEY&quot;. If the base64</span>
+<span class="sd">        couldn&#39;t be decoded then the error message will be &quot;INVALID_BASE64&quot;.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            pickle(bytes): Base64 encoded byte string containing the pickled</span>
+<span class="sd">                session</span>
+<span class="sd">            passphrase(str, optional): The passphrase used to encrypt the</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pickle</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Pickle can&#39;t be empty&quot;</span><span class="p">)</span>
+
+        <span class="n">byte_passphrase</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">passphrase</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">passphrase</span> <span class="k">else</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+        <span class="n">passphrase_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">byte_passphrase</span><span class="p">)</span>
+        <span class="n">pickle_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">pickle</span><span class="p">)</span>
+
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_unpickle_inbound_group_session</span><span class="p">(</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span>
+            <span class="n">passphrase_buffer</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">byte_passphrase</span><span class="p">),</span>
+            <span class="n">pickle_buffer</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">pickle</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">obj</span></div>
+
+    <span class="k">def</span> <span class="nf">_check_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ret</span><span class="p">):</span>
+        <span class="c1"># type: (int) -&gt; None</span>
+        <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_error</span><span class="p">():</span>
+            <span class="k">return</span>
+
+        <span class="n">last_error</span> <span class="o">=</span> <span class="n">bytes_to_native_str</span><span class="p">(</span><span class="n">ffi</span><span class="o">.</span><span class="n">string</span><span class="p">(</span>
+            <span class="n">lib</span><span class="o">.</span><span class="n">olm_inbound_group_session_last_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">)))</span>
+
+        <span class="k">raise</span> <span class="n">OlmGroupSessionError</span><span class="p">(</span><span class="n">last_error</span><span class="p">)</span>
+
+<div class="viewcode-block" id="InboundGroupSession.decrypt"><a class="viewcode-back" href="../../olm.html#olm.group_session.InboundGroupSession.decrypt">[docs]</a>    <span class="k">def</span> <span class="nf">decrypt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ciphertext</span><span class="p">):</span>
+        <span class="c1"># type: (AnyStr) -&gt; str</span>
+        <span class="sd">&quot;&quot;&quot;Decrypt a message</span>
+
+<span class="sd">        Returns the decrypted plain-text, or raises OlmGroupSessionError on</span>
+<span class="sd">        failure.</span>
+<span class="sd">        On failure the error message of the exception  will be:</span>
+
+<span class="sd">        * OLM_INVALID_BASE64         if the message is not valid base-64</span>
+<span class="sd">        * OLM_BAD_MESSAGE_VERSION    if the message was encrypted with an</span>
+<span class="sd">            unsupported version of the protocol</span>
+<span class="sd">        * OLM_BAD_MESSAGE_FORMAT     if the message headers could not be</span>
+<span class="sd">            decoded</span>
+<span class="sd">        * OLM_BAD_MESSAGE_MAC        if the message could not be verified</span>
+<span class="sd">        * OLM_UNKNOWN_MESSAGE_INDEX  if we do not have a session key</span>
+<span class="sd">            corresponding to the message&#39;s index (ie, it was sent before</span>
+<span class="sd">            the session key was shared with us)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            ciphertext(str): Base64 encoded ciphertext containing the encrypted</span>
+<span class="sd">                message</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ciphertext</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Ciphertext can&#39;t be empty.&quot;</span><span class="p">)</span>
+
+        <span class="n">byte_ciphertext</span> <span class="o">=</span> <span class="n">to_bytes</span><span class="p">(</span><span class="n">ciphertext</span><span class="p">)</span>
+
+        <span class="n">ciphertext_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">byte_ciphertext</span><span class="p">)</span>
+
+        <span class="n">max_plaintext_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_group_decrypt_max_plaintext_length</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span> <span class="n">ciphertext_buffer</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_ciphertext</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">plaintext_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">max_plaintext_length</span><span class="p">)</span>
+        <span class="n">ciphertext_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">byte_ciphertext</span><span class="p">)</span>
+
+        <span class="n">message_index</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;uint32_t*&quot;</span><span class="p">)</span>
+        <span class="n">plaintext_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_group_decrypt</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span> <span class="n">ciphertext_buffer</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_ciphertext</span><span class="p">),</span>
+            <span class="n">plaintext_buffer</span><span class="p">,</span> <span class="n">max_plaintext_length</span><span class="p">,</span>
+            <span class="n">message_index</span>
+        <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">plaintext_length</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">bytes_to_native_str</span><span class="p">(</span><span class="n">ffi</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span>
+            <span class="n">plaintext_buffer</span><span class="p">,</span>
+            <span class="n">plaintext_length</span>
+        <span class="p">))</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># type: () -&gt; str</span>
+        <span class="sd">&quot;&quot;&quot;str: A base64 encoded identifier for this session.&quot;&quot;&quot;</span>
+        <span class="n">id_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_inbound_group_session_id_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">)</span>
+        <span class="n">id_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">id_length</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_inbound_group_session_id</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span>
+            <span class="n">id_buffer</span><span class="p">,</span>
+            <span class="n">id_length</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bytes_to_native_str</span><span class="p">(</span><span class="n">ffi</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">id_buffer</span><span class="p">,</span> <span class="n">id_length</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">first_known_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># type: () -&gt; int</span>
+        <span class="sd">&quot;&quot;&quot;int: The first message index we know how to decrypt.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_inbound_group_session_first_known_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">)</span>
+
+<div class="viewcode-block" id="InboundGroupSession.export_session"><a class="viewcode-back" href="../../olm.html#olm.group_session.InboundGroupSession.export_session">[docs]</a>    <span class="k">def</span> <span class="nf">export_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message_index</span><span class="p">):</span>
+        <span class="c1"># type: (int) -&gt; str</span>
+        <span class="sd">&quot;&quot;&quot;Export an inbound group session</span>
+
+<span class="sd">        Export the base64-encoded ratchet key for this session, at the given</span>
+<span class="sd">        index, in a format which can be used by import_session().</span>
+
+<span class="sd">        Raises OlmGroupSessionError on failure. The error message for the</span>
+<span class="sd">        exception will be:</span>
+
+<span class="sd">        * OLM_UNKNOWN_MESSAGE_INDEX if we do not have a session key</span>
+<span class="sd">            corresponding to the given index (ie, it was sent before the</span>
+<span class="sd">            session key was shared with us)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            message_index(int): The message index at which the session should</span>
+<span class="sd">                be exported.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">export_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_export_inbound_group_session_length</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">)</span>
+
+        <span class="n">export_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">export_length</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_export_inbound_group_session</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span>
+            <span class="n">export_buffer</span><span class="p">,</span>
+            <span class="n">export_length</span><span class="p">,</span>
+            <span class="n">message_index</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bytes_to_native_str</span><span class="p">(</span><span class="n">ffi</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">export_buffer</span><span class="p">,</span> <span class="n">export_length</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="InboundGroupSession.import_session"><a class="viewcode-back" href="../../olm.html#olm.group_session.InboundGroupSession.import_session">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">import_session</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">session_key</span><span class="p">):</span>
+        <span class="c1"># type: (AnyStr) -&gt; InboundGroupSession</span>
+        <span class="sd">&quot;&quot;&quot;Create a InboundGroupSession from an exported session key.</span>
+
+<span class="sd">        Creates a InboundGroupSession with an previously exported session key,</span>
+<span class="sd">        raises OlmGroupSessionError on failure. The error message for the</span>
+<span class="sd">        exception will be:</span>
+
+<span class="sd">        * OLM_INVALID_BASE64  if the session_key is not valid base64</span>
+<span class="sd">        * OLM_BAD_SESSION_KEY if the session_key is invalid</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            session_key(str): The exported session key with which the inbound</span>
+<span class="sd">                group session will be created</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+
+        <span class="n">byte_session_key</span> <span class="o">=</span> <span class="n">to_bytes</span><span class="p">(</span><span class="n">session_key</span><span class="p">)</span>
+
+        <span class="n">key_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">byte_session_key</span><span class="p">)</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_import_inbound_group_session</span><span class="p">(</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span>
+            <span class="n">key_buffer</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">byte_session_key</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">obj</span></div></div>
+
+
+<div class="viewcode-block" id="OutboundGroupSession"><a class="viewcode-back" href="../../olm.html#olm.group_session.OutboundGroupSession">[docs]</a><span class="k">class</span> <span class="nc">OutboundGroupSession</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Outbound group session for encrypted multiuser communication.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_buf</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_outbound_group_session_size</span><span class="p">())</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_session</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_outbound_group_session</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">_buf</span><span class="p">)</span>
+        <span class="n">track_for_finalization</span><span class="p">(</span>
+            <span class="n">obj</span><span class="p">,</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span>
+            <span class="n">_clear_outbound_group_session</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># type: () -&gt; None</span>
+        <span class="sd">&quot;&quot;&quot;Create a new outbound group session.</span>
+
+<span class="sd">        Start a new outbound group session. Raises OlmGroupSessionError on</span>
+<span class="sd">        failure. If there weren&#39;t enough random bytes for the session creation</span>
+<span class="sd">        the error message for the exception will be NOT_ENOUGH_RANDOM.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_session</span>  <span class="c1"># type: ffi.cdata</span>
+
+        <span class="n">random_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_init_outbound_group_session_random_length</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span>
+        <span class="p">)</span>
+        <span class="n">random</span> <span class="o">=</span> <span class="n">URANDOM</span><span class="p">(</span><span class="n">random_length</span><span class="p">)</span>
+        <span class="n">random_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">random</span><span class="p">)</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_init_outbound_group_session</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span> <span class="n">random_buffer</span><span class="p">,</span> <span class="n">random_length</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_check_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ret</span><span class="p">):</span>
+        <span class="c1"># type: (int) -&gt; None</span>
+        <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_error</span><span class="p">():</span>
+            <span class="k">return</span>
+
+        <span class="n">last_error</span> <span class="o">=</span> <span class="n">bytes_to_native_str</span><span class="p">(</span><span class="n">ffi</span><span class="o">.</span><span class="n">string</span><span class="p">(</span>
+            <span class="n">lib</span><span class="o">.</span><span class="n">olm_outbound_group_session_last_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">)</span>
+        <span class="p">))</span>
+
+        <span class="k">raise</span> <span class="n">OlmGroupSessionError</span><span class="p">(</span><span class="n">last_error</span><span class="p">)</span>
+
+<div class="viewcode-block" id="OutboundGroupSession.pickle"><a class="viewcode-back" href="../../olm.html#olm.group_session.OutboundGroupSession.pickle">[docs]</a>    <span class="k">def</span> <span class="nf">pickle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="c1"># type: (Optional[str]) -&gt; bytes</span>
+        <span class="sd">&quot;&quot;&quot;Store an outbound group session.</span>
+
+<span class="sd">        Stores a group session as a base64 string. Encrypts the session using</span>
+<span class="sd">        the supplied passphrase. Returns a byte object containing the base64</span>
+<span class="sd">        encoded string of the pickled session.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            passphrase(str, optional): The passphrase to be used to encrypt</span>
+<span class="sd">                the session.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">byte_passphrase</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">passphrase</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">passphrase</span> <span class="k">else</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+        <span class="n">passphrase_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">byte_passphrase</span><span class="p">)</span>
+        <span class="n">pickle_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_pickle_outbound_group_session_length</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">)</span>
+        <span class="n">pickle_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">pickle_length</span><span class="p">)</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_pickle_outbound_group_session</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span> <span class="n">passphrase_buffer</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_passphrase</span><span class="p">),</span>
+            <span class="n">pickle_buffer</span><span class="p">,</span> <span class="n">pickle_length</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ffi</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">pickle_buffer</span><span class="p">,</span> <span class="n">pickle_length</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="OutboundGroupSession.from_pickle"><a class="viewcode-back" href="../../olm.html#olm.group_session.OutboundGroupSession.from_pickle">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_pickle</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pickle</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="c1"># type: (bytes, Optional[str]) -&gt; OutboundGroupSession</span>
+        <span class="sd">&quot;&quot;&quot;Load a previously stored outbound group session.</span>
+
+<span class="sd">        Loads a outbound group session from a pickled base64 string and returns</span>
+<span class="sd">        a OutboundGroupSession object. Decrypts the session using the supplied</span>
+<span class="sd">        passphrase. Raises OlmSessionError on failure. If the passphrase</span>
+<span class="sd">        doesn&#39;t match the one used to encrypt the session then the error</span>
+<span class="sd">        message for the exception will be &quot;BAD_ACCOUNT_KEY&quot;. If the base64</span>
+<span class="sd">        couldn&#39;t be decoded then the error message will be &quot;INVALID_BASE64&quot;.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            pickle(bytes): Base64 encoded byte string containing the pickled</span>
+<span class="sd">                session</span>
+<span class="sd">            passphrase(str, optional): The passphrase used to encrypt the</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pickle</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Pickle can&#39;t be empty&quot;</span><span class="p">)</span>
+
+        <span class="n">byte_passphrase</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">passphrase</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">passphrase</span> <span class="k">else</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+        <span class="n">passphrase_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">byte_passphrase</span><span class="p">)</span>
+        <span class="n">pickle_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">pickle</span><span class="p">)</span>
+
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_unpickle_outbound_group_session</span><span class="p">(</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span>
+            <span class="n">passphrase_buffer</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">byte_passphrase</span><span class="p">),</span>
+            <span class="n">pickle_buffer</span><span class="p">,</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">pickle</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">obj</span></div>
+
+<div class="viewcode-block" id="OutboundGroupSession.encrypt"><a class="viewcode-back" href="../../olm.html#olm.group_session.OutboundGroupSession.encrypt">[docs]</a>    <span class="k">def</span> <span class="nf">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plaintext</span><span class="p">):</span>
+        <span class="c1"># type: (AnyStr) -&gt; str</span>
+        <span class="sd">&quot;&quot;&quot;Encrypt a message.</span>
+
+<span class="sd">        Returns the encrypted ciphertext.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            plaintext(str): A string that will be encrypted using the group</span>
+<span class="sd">                session.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">byte_plaintext</span> <span class="o">=</span> <span class="n">to_bytes</span><span class="p">(</span><span class="n">plaintext</span><span class="p">)</span>
+        <span class="n">message_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_group_encrypt_message_length</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_plaintext</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">message_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">message_length</span><span class="p">)</span>
+
+        <span class="n">plaintext_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">byte_plaintext</span><span class="p">)</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_group_encrypt</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span>
+            <span class="n">plaintext_buffer</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_plaintext</span><span class="p">),</span>
+            <span class="n">message_buffer</span><span class="p">,</span> <span class="n">message_length</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">bytes_to_native_str</span><span class="p">(</span><span class="n">ffi</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">message_buffer</span><span class="p">,</span> <span class="n">message_length</span><span class="p">))</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># type: () -&gt; str</span>
+        <span class="sd">&quot;&quot;&quot;str: A base64 encoded identifier for this session.&quot;&quot;&quot;</span>
+        <span class="n">id_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_outbound_group_session_id_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">)</span>
+        <span class="n">id_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">id_length</span><span class="p">)</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_outbound_group_session_id</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span>
+            <span class="n">id_buffer</span><span class="p">,</span>
+            <span class="n">id_length</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">bytes_to_native_str</span><span class="p">(</span><span class="n">ffi</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">id_buffer</span><span class="p">,</span> <span class="n">id_length</span><span class="p">))</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">message_index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># type: () -&gt; int</span>
+        <span class="sd">&quot;&quot;&quot;int: The current message index of the session.</span>
+
+<span class="sd">        Each message is encrypted with an increasing index. This is the index</span>
+<span class="sd">        for the next message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_outbound_group_session_message_index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">session_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># type: () -&gt; str</span>
+        <span class="sd">&quot;&quot;&quot;The base64-encoded current ratchet key for this session.</span>
+
+<span class="sd">        Each message is encrypted with a different ratchet key. This function</span>
+<span class="sd">        returns the ratchet key that will be used for the next message.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">key_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_outbound_group_session_key_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">)</span>
+        <span class="n">key_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">key_length</span><span class="p">)</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_outbound_group_session_key</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_session</span><span class="p">,</span>
+            <span class="n">key_buffer</span><span class="p">,</span>
+            <span class="n">key_length</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">bytes_to_native_str</span><span class="p">(</span><span class="n">ffi</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">key_buffer</span><span class="p">,</span> <span class="n">key_length</span><span class="p">))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Damir Jelić.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

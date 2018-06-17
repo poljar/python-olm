@@ -1,0 +1,314 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>olm.account &#8212; python-olm 2.2 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for olm.account</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="c1"># libolm python bindings</span>
+<span class="c1"># Copyright © 2015-2017 OpenMarket Ltd</span>
+<span class="c1"># Copyright © 2018 Damir Jelić &lt;poljar@termina.org.uk&gt;</span>
+<span class="sd">&quot;&quot;&quot;libolm Account module.</span>
+
+<span class="sd">This module contains the account part of the olm library. It contains a single</span>
+<span class="sd">Account class which handles the creation of new accounts as well as the storing</span>
+<span class="sd">and restoring of them.</span>
+
+<span class="sd">Examples:</span>
+<span class="sd">    &gt;&gt;&gt; acc = Account()</span>
+<span class="sd">    &gt;&gt;&gt; account.identity_keys()</span>
+<span class="sd">    &gt;&gt;&gt; account.generate_one_time_keys(1)</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="c1"># pylint: disable=redefined-builtin,unused-import</span>
+<span class="kn">from</span> <span class="nn">builtins</span> <span class="k">import</span> <span class="nb">bytes</span><span class="p">,</span> <span class="nb">super</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="kn">from</span> <span class="nn">future.utils</span> <span class="k">import</span> <span class="n">bytes_to_native_str</span>
+
+<span class="c1"># pylint: disable=no-name-in-module</span>
+<span class="kn">from</span> <span class="nn">_libolm</span> <span class="k">import</span> <span class="n">ffi</span><span class="p">,</span> <span class="n">lib</span>  <span class="c1"># type: ignore</span>
+
+<span class="kn">from</span> <span class="nn">._compat</span> <span class="k">import</span> <span class="n">URANDOM</span><span class="p">,</span> <span class="n">to_bytes</span>
+<span class="kn">from</span> <span class="nn">._finalize</span> <span class="k">import</span> <span class="n">track_for_finalization</span>
+
+<span class="c1"># This is imported only for type checking purposes</span>
+<span class="k">if</span> <span class="kc">False</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">.session</span> <span class="k">import</span> <span class="n">Session</span>  <span class="c1"># pragma: no cover</span>
+
+
+<span class="k">def</span> <span class="nf">_clear_account</span><span class="p">(</span><span class="n">account</span><span class="p">):</span>
+    <span class="n">lib</span><span class="o">.</span><span class="n">olm_clear_account</span><span class="p">(</span><span class="n">account</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="OlmAccountError"><a class="viewcode-back" href="../../olm.html#olm.account.OlmAccountError">[docs]</a><span class="k">class</span> <span class="nc">OlmAccountError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;libolm Account error exception.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="Account"><a class="viewcode-back" href="../../olm.html#olm.account.Account">[docs]</a><span class="k">class</span> <span class="nc">Account</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;libolm Account class.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_buf</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_account_size</span><span class="p">())</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_account</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_account</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">_buf</span><span class="p">)</span>
+        <span class="n">track_for_finalization</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">_account</span><span class="p">,</span> <span class="n">_clear_account</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># type: () -&gt; None</span>
+        <span class="sd">&quot;&quot;&quot;Create a new olm account.</span>
+
+<span class="sd">        Creates a new account and its matching identity key pair.</span>
+
+<span class="sd">        Raises OlmAccountError on failure. If there weren&#39;t enough random bytes</span>
+<span class="sd">        for the account creation the error message for the exception will be</span>
+<span class="sd">        NOT_ENOUGH_RANDOM.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># This is needed to silence mypy not knowing the type of _account.</span>
+        <span class="c1"># There has to be a better way for this.</span>
+        <span class="k">if</span> <span class="kc">False</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_account</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_account</span>  <span class="c1"># type: ffi.cdata</span>
+
+        <span class="n">random_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_create_account_random_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">)</span>
+        <span class="n">random</span> <span class="o">=</span> <span class="n">URANDOM</span><span class="p">(</span><span class="n">random_length</span><span class="p">)</span>
+        <span class="n">random_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">random</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span>
+            <span class="n">lib</span><span class="o">.</span><span class="n">olm_create_account</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">,</span> <span class="n">random_buffer</span><span class="p">,</span>
+                                   <span class="n">random_length</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_check_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ret</span><span class="p">):</span>
+        <span class="c1"># type: (int) -&gt; None</span>
+        <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_error</span><span class="p">():</span>
+            <span class="k">return</span>
+
+        <span class="n">last_error</span> <span class="o">=</span> <span class="n">bytes_to_native_str</span><span class="p">(</span>
+            <span class="n">ffi</span><span class="o">.</span><span class="n">string</span><span class="p">((</span><span class="n">lib</span><span class="o">.</span><span class="n">olm_account_last_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">))))</span>
+
+        <span class="k">raise</span> <span class="n">OlmAccountError</span><span class="p">(</span><span class="n">last_error</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Account.pickle"><a class="viewcode-back" href="../../olm.html#olm.account.Account.pickle">[docs]</a>    <span class="k">def</span> <span class="nf">pickle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="c1"># type: (Optional[str]) -&gt; bytes</span>
+        <span class="sd">&quot;&quot;&quot;Store an olm account.</span>
+
+<span class="sd">        Stores an account as a base64 string. Encrypts the account using the</span>
+<span class="sd">        supplied passphrase. Returns a byte object containing the base64</span>
+<span class="sd">        encoded string of the pickled account. Raises OlmAccountError on</span>
+<span class="sd">        failure.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            passphrase(str, optional): The passphrase to be used to encrypt</span>
+<span class="sd">                the account.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">byte_key</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">passphrase</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">passphrase</span> <span class="k">else</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+        <span class="n">key_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">byte_key</span><span class="p">)</span>
+
+        <span class="n">pickle_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_pickle_account_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">)</span>
+        <span class="n">pickle_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">pickle_length</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span>
+            <span class="n">lib</span><span class="o">.</span><span class="n">olm_pickle_account</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">,</span> <span class="n">key_buffer</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_key</span><span class="p">),</span>
+                                   <span class="n">pickle_buffer</span><span class="p">,</span> <span class="n">pickle_length</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">ffi</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">pickle_buffer</span><span class="p">,</span> <span class="n">pickle_length</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Account.from_pickle"><a class="viewcode-back" href="../../olm.html#olm.account.Account.from_pickle">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_pickle</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pickle</span><span class="p">,</span> <span class="n">passphrase</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="c1"># type: (bytes, Optional[str]) -&gt; Account</span>
+        <span class="sd">&quot;&quot;&quot;Load an previously stored olm account.</span>
+
+<span class="sd">        Loads an account from a pickled base64 string and returns an Account</span>
+<span class="sd">        object. Decrypts the account using the supplied passphrase. Raises</span>
+<span class="sd">        OlmAccountError on failure. If the passphrase doesn&#39;t match the one</span>
+<span class="sd">        used to encrypt the account then the error message for the</span>
+<span class="sd">        exception will be &quot;BAD_ACCOUNT_KEY&quot;. If the base64 couldn&#39;t be decoded</span>
+<span class="sd">        then the error message will be &quot;INVALID_BASE64&quot;.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            pickle(bytes): Base64 encoded byte string containing the pickled</span>
+<span class="sd">                account</span>
+<span class="sd">            passphrase(str, optional): The passphrase used to encrypt the</span>
+<span class="sd">                account.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pickle</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Pickle can&#39;t be empty&quot;</span><span class="p">)</span>
+
+        <span class="n">byte_key</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">passphrase</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="n">passphrase</span> <span class="k">else</span> <span class="sa">b</span><span class="s2">&quot;&quot;</span>
+        <span class="n">key_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">byte_key</span><span class="p">)</span>
+        <span class="n">pickle_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">pickle</span><span class="p">)</span>
+
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+
+        <span class="n">ret</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_unpickle_account</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">_account</span><span class="p">,</span> <span class="n">key_buffer</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_key</span><span class="p">),</span>
+                                       <span class="n">pickle_buffer</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">pickle</span><span class="p">))</span>
+        <span class="n">obj</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">obj</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">identity_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># type: () -&gt; Dict[str, str]</span>
+        <span class="sd">&quot;&quot;&quot;dict: Public part of the identity keys of the account.&quot;&quot;&quot;</span>
+        <span class="n">out_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_account_identity_keys_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">)</span>
+        <span class="n">out_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">out_length</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span>
+            <span class="n">lib</span><span class="o">.</span><span class="n">olm_account_identity_keys</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">,</span> <span class="n">out_buffer</span><span class="p">,</span>
+                                          <span class="n">out_length</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">ffi</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">out_buffer</span><span class="p">,</span> <span class="n">out_length</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Account.sign"><a class="viewcode-back" href="../../olm.html#olm.account.Account.sign">[docs]</a>    <span class="k">def</span> <span class="nf">sign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">):</span>
+        <span class="c1"># type: (AnyStr) -&gt; str</span>
+        <span class="sd">&quot;&quot;&quot;Signs a message with this account.</span>
+
+<span class="sd">        Signs a message with the private ed25519 identity key of this account.</span>
+<span class="sd">        Returns the signature.</span>
+<span class="sd">        Raises OlmAccountError on failure.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            message(str): The message to sign.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bytes_message</span> <span class="o">=</span> <span class="n">to_bytes</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="n">out_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_account_signature_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">)</span>
+        <span class="n">message_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">bytes_message</span><span class="p">)</span>
+        <span class="n">out_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">out_length</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span>
+            <span class="n">lib</span><span class="o">.</span><span class="n">olm_account_sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">,</span> <span class="n">message_buffer</span><span class="p">,</span>
+                                 <span class="nb">len</span><span class="p">(</span><span class="n">bytes_message</span><span class="p">),</span> <span class="n">out_buffer</span><span class="p">,</span> <span class="n">out_length</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">bytes_to_native_str</span><span class="p">(</span><span class="n">ffi</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">out_buffer</span><span class="p">,</span> <span class="n">out_length</span><span class="p">))</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">max_one_time_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># type: () -&gt; int</span>
+        <span class="sd">&quot;&quot;&quot;int: The maximum number of one time keys the account can store.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_account_max_number_of_one_time_keys</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Account.mark_keys_as_published"><a class="viewcode-back" href="../../olm.html#olm.account.Account.mark_keys_as_published">[docs]</a>    <span class="k">def</span> <span class="nf">mark_keys_as_published</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># type: () -&gt; None</span>
+        <span class="sd">&quot;&quot;&quot;Mark the current set of one time keys as being published.&quot;&quot;&quot;</span>
+        <span class="n">lib</span><span class="o">.</span><span class="n">olm_account_mark_keys_as_published</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Account.generate_one_time_keys"><a class="viewcode-back" href="../../olm.html#olm.account.Account.generate_one_time_keys">[docs]</a>    <span class="k">def</span> <span class="nf">generate_one_time_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>
+        <span class="c1"># type: (int) -&gt; None</span>
+        <span class="sd">&quot;&quot;&quot;Generate a number of new one time keys.</span>
+
+<span class="sd">        If the total number of keys stored by this account exceeds</span>
+<span class="sd">        max_one_time_keys() then the old keys are discarded.</span>
+<span class="sd">        Raises OlmAccountError on error. If the number of random bytes is</span>
+<span class="sd">        too small then the error message of the exception will be</span>
+<span class="sd">        NOT_ENOUGH_RANDOM.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            count(int): The number of keys to generate.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">random_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_account_generate_one_time_keys_random_length</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+        <span class="n">random</span> <span class="o">=</span> <span class="n">URANDOM</span><span class="p">(</span><span class="n">random_length</span><span class="p">)</span>
+        <span class="n">random_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">random</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span>
+            <span class="n">lib</span><span class="o">.</span><span class="n">olm_account_generate_one_time_keys</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">random_buffer</span><span class="p">,</span> <span class="n">random_length</span><span class="p">))</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">one_time_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># type: () -&gt; Dict[str, Dict[str, str]]</span>
+        <span class="sd">&quot;&quot;&quot;dict: The public part of the one time keys for this account.&quot;&quot;&quot;</span>
+        <span class="n">out_length</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_account_one_time_keys_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">)</span>
+        <span class="n">out_buffer</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">out_length</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span>
+            <span class="n">lib</span><span class="o">.</span><span class="n">olm_account_one_time_keys</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">,</span> <span class="n">out_buffer</span><span class="p">,</span>
+                                          <span class="n">out_length</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">ffi</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">out_buffer</span><span class="p">,</span> <span class="n">out_length</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Account.remove_one_time_keys"><a class="viewcode-back" href="../../olm.html#olm.account.Account.remove_one_time_keys">[docs]</a>    <span class="k">def</span> <span class="nf">remove_one_time_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+        <span class="c1"># type: (Session) -&gt; None</span>
+        <span class="sd">&quot;&quot;&quot;Remove used one time keys.</span>
+
+<span class="sd">        Removes the one time keys that the session used from the account.</span>
+<span class="sd">        Raises OlmAccountError on failure. If the account doesn&#39;t have any</span>
+<span class="sd">        matching one time keys then the error message of the exception will be</span>
+<span class="sd">        &quot;BAD_MESSAGE_KEY_ID&quot;.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            session(Session): An Olm Session object that was created with this</span>
+<span class="sd">            account.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span><span class="n">lib</span><span class="o">.</span><span class="n">olm_remove_one_time_keys</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_account</span><span class="p">,</span>
+                                                       <span class="n">session</span><span class="o">.</span><span class="n">_session</span><span class="p">))</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Damir Jelić.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,739 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>olm package &#8212; python-olm 2.2 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Welcome to olm’s documentation!" href="index.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="olm-package">
+<h1>olm package<a class="headerlink" href="#olm-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-olm.account">
+<span id="olm-account-module"></span><h2>olm.account module<a class="headerlink" href="#module-olm.account" title="Permalink to this headline">¶</a></h2>
+<p>libolm Account module.</p>
+<p>This module contains the account part of the olm library. It contains a single
+Account class which handles the creation of new accounts as well as the storing
+and restoring of them.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">acc</span> <span class="o">=</span> <span class="n">Account</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">account</span><span class="o">.</span><span class="n">identity_keys</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">account</span><span class="o">.</span><span class="n">generate_one_time_keys</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="class">
+<dt id="olm.account.Account">
+<em class="property">class </em><code class="descclassname">olm.account.</code><code class="descname">Account</code><a class="reference internal" href="_modules/olm/account.html#Account"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.account.Account" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>libolm Account class.</p>
+<dl class="classmethod">
+<dt id="olm.account.Account.from_pickle">
+<em class="property">classmethod </em><code class="descname">from_pickle</code><span class="sig-paren">(</span><em>pickle</em>, <em>passphrase=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/account.html#Account.from_pickle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.account.Account.from_pickle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load an previously stored olm account.</p>
+<p>Loads an account from a pickled base64 string and returns an Account
+object. Decrypts the account using the supplied passphrase. Raises
+OlmAccountError on failure. If the passphrase doesn’t match the one
+used to encrypt the account then the error message for the
+exception will be “BAD_ACCOUNT_KEY”. If the base64 couldn’t be decoded
+then the error message will be “INVALID_BASE64”.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pickle</strong> (<em>bytes</em>) – Base64 encoded byte string containing the pickled
+account</li>
+<li><strong>passphrase</strong> (<em>str</em><em>, </em><em>optional</em>) – The passphrase used to encrypt the
+account.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="olm.account.Account.generate_one_time_keys">
+<code class="descname">generate_one_time_keys</code><span class="sig-paren">(</span><em>count</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/account.html#Account.generate_one_time_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.account.Account.generate_one_time_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a number of new one time keys.</p>
+<p>If the total number of keys stored by this account exceeds
+max_one_time_keys() then the old keys are discarded.
+Raises OlmAccountError on error. If the number of random bytes is
+too small then the error message of the exception will be
+NOT_ENOUGH_RANDOM.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>count</strong> (<em>int</em>) – The number of keys to generate.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="olm.account.Account.identity_keys">
+<code class="descname">identity_keys</code><a class="headerlink" href="#olm.account.Account.identity_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em> – Public part of the identity keys of the account.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="olm.account.Account.mark_keys_as_published">
+<code class="descname">mark_keys_as_published</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/account.html#Account.mark_keys_as_published"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.account.Account.mark_keys_as_published" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mark the current set of one time keys as being published.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="olm.account.Account.max_one_time_keys">
+<code class="descname">max_one_time_keys</code><a class="headerlink" href="#olm.account.Account.max_one_time_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> – The maximum number of one time keys the account can store.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="olm.account.Account.one_time_keys">
+<code class="descname">one_time_keys</code><a class="headerlink" href="#olm.account.Account.one_time_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em> – The public part of the one time keys for this account.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="olm.account.Account.pickle">
+<code class="descname">pickle</code><span class="sig-paren">(</span><em>passphrase=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/account.html#Account.pickle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.account.Account.pickle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store an olm account.</p>
+<p>Stores an account as a base64 string. Encrypts the account using the
+supplied passphrase. Returns a byte object containing the base64
+encoded string of the pickled account. Raises OlmAccountError on
+failure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>passphrase</strong> (<em>str</em><em>, </em><em>optional</em>) – The passphrase to be used to encrypt
+the account.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="olm.account.Account.remove_one_time_keys">
+<code class="descname">remove_one_time_keys</code><span class="sig-paren">(</span><em>session</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/account.html#Account.remove_one_time_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.account.Account.remove_one_time_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove used one time keys.</p>
+<p>Removes the one time keys that the session used from the account.
+Raises OlmAccountError on failure. If the account doesn’t have any
+matching one time keys then the error message of the exception will be
+“BAD_MESSAGE_KEY_ID”.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>session</strong> (<a class="reference internal" href="#olm.session.Session" title="olm.session.Session"><em>Session</em></a>) – An Olm Session object that was created with this</li>
+<li><strong>account.</strong> – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="olm.account.Account.sign">
+<code class="descname">sign</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/account.html#Account.sign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.account.Account.sign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signs a message with this account.</p>
+<p>Signs a message with the private ed25519 identity key of this account.
+Returns the signature.
+Raises OlmAccountError on failure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>message</strong> (<em>str</em>) – The message to sign.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="olm.account.OlmAccountError">
+<em class="property">exception </em><code class="descclassname">olm.account.</code><code class="descname">OlmAccountError</code><a class="reference internal" href="_modules/olm/account.html#OlmAccountError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.account.OlmAccountError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>libolm Account error exception.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-olm.group_session">
+<span id="olm-group-session-module"></span><h2>olm.group_session module<a class="headerlink" href="#module-olm.group_session" title="Permalink to this headline">¶</a></h2>
+<p>libolm Group session module.</p>
+<p>This module contains the group session part of the Olm library. It contains two
+classes for creating inbound and outbound group sessions.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">outbound</span> <span class="o">=</span> <span class="n">OutboundGroupSession</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">InboundGroupSession</span><span class="p">(</span><span class="n">outbound</span><span class="o">.</span><span class="n">session_key</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="class">
+<dt id="olm.group_session.InboundGroupSession">
+<em class="property">class </em><code class="descclassname">olm.group_session.</code><code class="descname">InboundGroupSession</code><span class="sig-paren">(</span><em>session_key</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/group_session.html#InboundGroupSession"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.group_session.InboundGroupSession" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Inbound group session for encrypted multiuser communication.</p>
+<dl class="method">
+<dt id="olm.group_session.InboundGroupSession.decrypt">
+<code class="descname">decrypt</code><span class="sig-paren">(</span><em>ciphertext</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/group_session.html#InboundGroupSession.decrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.group_session.InboundGroupSession.decrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrypt a message</p>
+<p>Returns the decrypted plain-text, or raises OlmGroupSessionError on
+failure.
+On failure the error message of the exception  will be:</p>
+<ul class="simple">
+<li>OLM_INVALID_BASE64         if the message is not valid base-64</li>
+<li><dl class="first docutils">
+<dt>OLM_BAD_MESSAGE_VERSION    if the message was encrypted with an</dt>
+<dd>unsupported version of the protocol</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>OLM_BAD_MESSAGE_FORMAT     if the message headers could not be</dt>
+<dd>decoded</dd>
+</dl>
+</li>
+<li>OLM_BAD_MESSAGE_MAC        if the message could not be verified</li>
+<li><dl class="first docutils">
+<dt>OLM_UNKNOWN_MESSAGE_INDEX  if we do not have a session key</dt>
+<dd>corresponding to the message’s index (ie, it was sent before
+the session key was shared with us)</dd>
+</dl>
+</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>ciphertext</strong> (<em>str</em>) – Base64 encoded ciphertext containing the encrypted
+message</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="olm.group_session.InboundGroupSession.export_session">
+<code class="descname">export_session</code><span class="sig-paren">(</span><em>message_index</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/group_session.html#InboundGroupSession.export_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.group_session.InboundGroupSession.export_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export an inbound group session</p>
+<p>Export the base64-encoded ratchet key for this session, at the given
+index, in a format which can be used by import_session().</p>
+<p>Raises OlmGroupSessionError on failure. The error message for the
+exception will be:</p>
+<ul class="simple">
+<li><dl class="first docutils">
+<dt>OLM_UNKNOWN_MESSAGE_INDEX if we do not have a session key</dt>
+<dd>corresponding to the given index (ie, it was sent before the
+session key was shared with us)</dd>
+</dl>
+</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>message_index</strong> (<em>int</em>) – The message index at which the session should
+be exported.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="olm.group_session.InboundGroupSession.first_known_index">
+<code class="descname">first_known_index</code><a class="headerlink" href="#olm.group_session.InboundGroupSession.first_known_index" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> – The first message index we know how to decrypt.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="olm.group_session.InboundGroupSession.from_pickle">
+<em class="property">classmethod </em><code class="descname">from_pickle</code><span class="sig-paren">(</span><em>pickle</em>, <em>passphrase=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/group_session.html#InboundGroupSession.from_pickle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.group_session.InboundGroupSession.from_pickle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a previously stored inbound group session.</p>
+<p>Loads a inbound group session from a pickled base64 string and returns
+a InboundGroupSession object. Decrypts the session using the supplied
+passphrase. Raises OlmSessionError on failure. If the passphrase
+doesn’t match the one used to encrypt the session then the error
+message for the exception will be “BAD_ACCOUNT_KEY”. If the base64
+couldn’t be decoded then the error message will be “INVALID_BASE64”.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pickle</strong> (<em>bytes</em>) – Base64 encoded byte string containing the pickled
+session</li>
+<li><strong>passphrase</strong> (<em>str</em><em>, </em><em>optional</em>) – The passphrase used to encrypt the</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="olm.group_session.InboundGroupSession.id">
+<code class="descname">id</code><a class="headerlink" href="#olm.group_session.InboundGroupSession.id" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – A base64 encoded identifier for this session.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="olm.group_session.InboundGroupSession.import_session">
+<em class="property">classmethod </em><code class="descname">import_session</code><span class="sig-paren">(</span><em>session_key</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/group_session.html#InboundGroupSession.import_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.group_session.InboundGroupSession.import_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a InboundGroupSession from an exported session key.</p>
+<p>Creates a InboundGroupSession with an previously exported session key,
+raises OlmGroupSessionError on failure. The error message for the
+exception will be:</p>
+<ul class="simple">
+<li>OLM_INVALID_BASE64  if the session_key is not valid base64</li>
+<li>OLM_BAD_SESSION_KEY if the session_key is invalid</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>session_key</strong> (<em>str</em>) – The exported session key with which the inbound
+group session will be created</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="olm.group_session.InboundGroupSession.pickle">
+<code class="descname">pickle</code><span class="sig-paren">(</span><em>passphrase=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/group_session.html#InboundGroupSession.pickle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.group_session.InboundGroupSession.pickle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store an inbound group session.</p>
+<p>Stores a group session as a base64 string. Encrypts the session using
+the supplied passphrase. Returns a byte object containing the base64
+encoded string of the pickled session.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>passphrase</strong> (<em>str</em><em>, </em><em>optional</em>) – The passphrase to be used to encrypt
+the session.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="olm.group_session.OlmGroupSessionError">
+<em class="property">exception </em><code class="descclassname">olm.group_session.</code><code class="descname">OlmGroupSessionError</code><a class="reference internal" href="_modules/olm/group_session.html#OlmGroupSessionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.group_session.OlmGroupSessionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>libolm Group session error exception.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="olm.group_session.OutboundGroupSession">
+<em class="property">class </em><code class="descclassname">olm.group_session.</code><code class="descname">OutboundGroupSession</code><a class="reference internal" href="_modules/olm/group_session.html#OutboundGroupSession"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.group_session.OutboundGroupSession" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Outbound group session for encrypted multiuser communication.</p>
+<dl class="method">
+<dt id="olm.group_session.OutboundGroupSession.encrypt">
+<code class="descname">encrypt</code><span class="sig-paren">(</span><em>plaintext</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/group_session.html#OutboundGroupSession.encrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.group_session.OutboundGroupSession.encrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encrypt a message.</p>
+<p>Returns the encrypted ciphertext.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>plaintext</strong> (<em>str</em>) – A string that will be encrypted using the group
+session.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="olm.group_session.OutboundGroupSession.from_pickle">
+<em class="property">classmethod </em><code class="descname">from_pickle</code><span class="sig-paren">(</span><em>pickle</em>, <em>passphrase=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/group_session.html#OutboundGroupSession.from_pickle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.group_session.OutboundGroupSession.from_pickle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load a previously stored outbound group session.</p>
+<p>Loads a outbound group session from a pickled base64 string and returns
+a OutboundGroupSession object. Decrypts the session using the supplied
+passphrase. Raises OlmSessionError on failure. If the passphrase
+doesn’t match the one used to encrypt the session then the error
+message for the exception will be “BAD_ACCOUNT_KEY”. If the base64
+couldn’t be decoded then the error message will be “INVALID_BASE64”.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pickle</strong> (<em>bytes</em>) – Base64 encoded byte string containing the pickled
+session</li>
+<li><strong>passphrase</strong> (<em>str</em><em>, </em><em>optional</em>) – The passphrase used to encrypt the</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="olm.group_session.OutboundGroupSession.id">
+<code class="descname">id</code><a class="headerlink" href="#olm.group_session.OutboundGroupSession.id" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – A base64 encoded identifier for this session.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="olm.group_session.OutboundGroupSession.message_index">
+<code class="descname">message_index</code><a class="headerlink" href="#olm.group_session.OutboundGroupSession.message_index" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> – The current message index of the session.</p>
+<p>Each message is encrypted with an increasing index. This is the index
+for the next message.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="olm.group_session.OutboundGroupSession.pickle">
+<code class="descname">pickle</code><span class="sig-paren">(</span><em>passphrase=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/group_session.html#OutboundGroupSession.pickle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.group_session.OutboundGroupSession.pickle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store an outbound group session.</p>
+<p>Stores a group session as a base64 string. Encrypts the session using
+the supplied passphrase. Returns a byte object containing the base64
+encoded string of the pickled session.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>passphrase</strong> (<em>str</em><em>, </em><em>optional</em>) – The passphrase to be used to encrypt
+the session.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="olm.group_session.OutboundGroupSession.session_key">
+<code class="descname">session_key</code><a class="headerlink" href="#olm.group_session.OutboundGroupSession.session_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>The base64-encoded current ratchet key for this session.</p>
+<p>Each message is encrypted with a different ratchet key. This function
+returns the ratchet key that will be used for the next message.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-olm.session">
+<span id="olm-session-module"></span><h2>olm.session module<a class="headerlink" href="#module-olm.session" title="Permalink to this headline">¶</a></h2>
+<p>libolm Session module.</p>
+<p>This module contains the Olm Session part of the Olm library.</p>
+<p>It is used to establish a peer to peer encrypted communication channel between
+two Olm accounts.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">alice</span> <span class="o">=</span> <span class="n">Account</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bob</span> <span class="o">=</span> <span class="n">Account</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">bob</span><span class="o">.</span><span class="n">generate_one_time_keys</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">id_key</span> <span class="o">=</span> <span class="n">bob</span><span class="o">.</span><span class="n">identity_keys</span><span class="p">[</span><span class="s1">&#39;curve25519&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">one_time</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">bob</span><span class="o">.</span><span class="n">one_time_keys</span><span class="p">[</span><span class="s2">&quot;curve25519&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span> <span class="o">=</span> <span class="n">OutboundSession</span><span class="p">(</span><span class="n">alice</span><span class="p">,</span> <span class="n">id_key</span><span class="p">,</span> <span class="n">one_time</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">OutboundSession</span><span class="p">(</span><span class="n">alice</span><span class="p">,</span> <span class="n">id_key</span><span class="p">,</span> <span class="n">one_time</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="class">
+<dt id="olm.session.InboundSession">
+<em class="property">class </em><code class="descclassname">olm.session.</code><code class="descname">InboundSession</code><span class="sig-paren">(</span><em>account</em>, <em>message</em>, <em>identity_key=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/session.html#InboundSession"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.session.InboundSession" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#olm.session.Session" title="olm.session.Session"><code class="xref py py-class docutils literal notranslate"><span class="pre">olm.session.Session</span></code></a></p>
+<p>Inbound Olm session for p2p encrypted communication.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="olm.session.OlmMessage">
+<em class="property">class </em><code class="descclassname">olm.session.</code><code class="descname">OlmMessage</code><span class="sig-paren">(</span><em>ciphertext</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/session.html#OlmMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.session.OlmMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">olm.session._OlmMessage</span></code></p>
+<p>Olm message class</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="olm.session.OlmPreKeyMessage">
+<em class="property">class </em><code class="descclassname">olm.session.</code><code class="descname">OlmPreKeyMessage</code><span class="sig-paren">(</span><em>ciphertext</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/session.html#OlmPreKeyMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.session.OlmPreKeyMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">olm.session._OlmMessage</span></code></p>
+<p>Olm prekey message class</p>
+<p>Prekey messages are used to establish an Olm session. After the first
+message exchange the session switches to normal messages</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="olm.session.OlmSessionError">
+<em class="property">exception </em><code class="descclassname">olm.session.</code><code class="descname">OlmSessionError</code><a class="reference internal" href="_modules/olm/session.html#OlmSessionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.session.OlmSessionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>libolm Session exception.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="olm.session.OutboundSession">
+<em class="property">class </em><code class="descclassname">olm.session.</code><code class="descname">OutboundSession</code><span class="sig-paren">(</span><em>account</em>, <em>identity_key</em>, <em>one_time_key</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/session.html#OutboundSession"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.session.OutboundSession" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#olm.session.Session" title="olm.session.Session"><code class="xref py py-class docutils literal notranslate"><span class="pre">olm.session.Session</span></code></a></p>
+<p>Outbound Olm session for p2p encrypted communication.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="olm.session.Session">
+<em class="property">class </em><code class="descclassname">olm.session.</code><code class="descname">Session</code><a class="reference internal" href="_modules/olm/session.html#Session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.session.Session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>libolm Session class.
+This is an abstract class that can’t be instantiated except when unpickling
+a previously pickled InboundSession or OutboundSession object with
+from_pickle.</p>
+<dl class="method">
+<dt id="olm.session.Session.decrypt">
+<code class="descname">decrypt</code><span class="sig-paren">(</span><em>message</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/session.html#Session.decrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.session.Session.decrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrypts a message using the session. Returns the plaintext string
+on success. Raises OlmSessionError on failure. If the base64 couldn’t
+be decoded then the error message will be “INVALID_BASE64”. If the
+message is for an unsupported version of the protocol the error message
+will be “BAD_MESSAGE_VERSION”. If the message couldn’t be decoded then
+the error message will be “BAD_MESSAGE_FORMAT”. If the MAC on the
+message was invalid then the error message will be “BAD_MESSAGE_MAC”.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>message</strong> (<a class="reference internal" href="#olm.session.OlmMessage" title="olm.session.OlmMessage"><em>OlmMessage</em></a>) – The Olm message that will be decrypted. It can</li>
+<li><strong>either a OlmPreKeyMessage</strong><strong> or </strong><strong>a OlmMessage.</strong> (<em>be</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="olm.session.Session.encrypt">
+<code class="descname">encrypt</code><span class="sig-paren">(</span><em>plaintext</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/session.html#Session.encrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.session.Session.encrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encrypts a message using the session. Returns the ciphertext as an
+base64 encoded strin on success. Raises OlmSessionError on failure. If
+there weren’t enough random bytes to encrypt the message the error
+message for the exception will be NOT_ENOUGH_RANDOM.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>plaintext</strong> (<em>str</em>) – The plaintext message that will be encrypted.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="olm.session.Session.from_pickle">
+<em class="property">classmethod </em><code class="descname">from_pickle</code><span class="sig-paren">(</span><em>pickle</em>, <em>passphrase=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/session.html#Session.from_pickle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.session.Session.from_pickle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load an previously stored olm session.</p>
+<p>Loads a session from a pickled base64 string and returns a Session
+object. Decrypts the session using the supplied passphrase. Raises
+OlmSessionError on failure. If the passphrase doesn’t match the one
+used to encrypt the session then the error message for the
+exception will be “BAD_ACCOUNT_KEY”. If the base64 couldn’t be decoded
+then the error message will be “INVALID_BASE64”.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>pickle</strong> (<em>bytes</em>) – Base64 encoded byte string containing the pickled
+session</li>
+<li><strong>passphrase</strong> (<em>str</em><em>, </em><em>optional</em>) – The passphrase used to encrypt the
+session.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="olm.session.Session.id">
+<code class="descname">id</code><a class="headerlink" href="#olm.session.Session.id" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>str</em> – An identifier for this session. Will be the same for both
+ends of the conversation.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="olm.session.Session.matches">
+<code class="descname">matches</code><span class="sig-paren">(</span><em>message</em>, <em>identity_key=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/session.html#Session.matches"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.session.Session.matches" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if the PRE_KEY message is for this in-bound session.
+This can happen if multiple messages are sent to this session before
+this session sends a message in reply. Returns True if the session
+matches. Returns False if the session does not match. Raises
+OlmSessionError on failure. If the base64 couldn’t be decoded then the
+error message will be “INVALID_BASE64”. If the message was for an
+unsupported protocol version then the error message will be
+“BAD_MESSAGE_VERSION”. If the message couldn’t be decoded then then the
+error message will be * “BAD_MESSAGE_FORMAT”.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>message</strong> (<a class="reference internal" href="#olm.session.OlmPreKeyMessage" title="olm.session.OlmPreKeyMessage"><em>OlmPreKeyMessage</em></a>) – The Olm prekey message that will checked
+if it is intended for this session.</li>
+<li><strong>identity_key</strong> (<em>str</em><em>, </em><em>optional</em>) – The identity key of the sender. To
+check if the message was also sent using this identity key.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="olm.session.Session.pickle">
+<code class="descname">pickle</code><span class="sig-paren">(</span><em>passphrase=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/session.html#Session.pickle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.session.Session.pickle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store a olm session.</p>
+<p>Stores a session as a base64 string. Encrypts the session using the
+supplied passphrase. Returns a byte object containing the base64
+encoded string of the pickled session. Raises OlmSessionError on
+failure.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>passphrase</strong> (<em>str</em><em>, </em><em>optional</em>) – The passphrase to be used to encrypt
+the session.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-olm.utility">
+<span id="olm-utility-module"></span><h2>olm.utility module<a class="headerlink" href="#module-olm.utility" title="Permalink to this headline">¶</a></h2>
+<p>libolm Utility module.</p>
+<p>This module contains utilities for olm.
+It only contains the ed25519_verify function for signature verification.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">alice</span> <span class="o">=</span> <span class="n">Account</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Test&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">signature</span> <span class="o">=</span> <span class="n">alice</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">signing_key</span> <span class="o">=</span> <span class="n">alice</span><span class="o">.</span><span class="n">identity_keys</span><span class="p">[</span><span class="s2">&quot;ed25519&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ed25519_verify</span><span class="p">(</span><span class="n">signing_key</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">signature</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="exception">
+<dt id="olm.utility.OlmVerifyError">
+<em class="property">exception </em><code class="descclassname">olm.utility.</code><code class="descname">OlmVerifyError</code><a class="reference internal" href="_modules/olm/utility.html#OlmVerifyError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.utility.OlmVerifyError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>libolm signature verification exception.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="olm.utility.ed25519_verify">
+<code class="descclassname">olm.utility.</code><code class="descname">ed25519_verify</code><span class="sig-paren">(</span><em>key</em>, <em>message</em>, <em>signature</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/utility.html#ed25519_verify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.utility.ed25519_verify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verify an ed25519 signature.</p>
+<p>Raises an OlmVerifyError if verification fails.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>key</strong> (<em>str</em>) – The ed25519 public key used for signing.</li>
+<li><strong>message</strong> (<em>str</em>) – The signed message.</li>
+<li><strong>signature</strong> (<em>bytes</em>) – The message signature.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">olm package</a><ul>
+<li><a class="reference internal" href="#module-olm.account">olm.account module</a></li>
+<li><a class="reference internal" href="#module-olm.group_session">olm.group_session module</a></li>
+<li><a class="reference internal" href="#module-olm.session">olm.session module</a></li>
+<li><a class="reference internal" href="#module-olm.utility">olm.utility module</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">Welcome to olm’s documentation!</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/olm.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2018, Damir Jelić.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.7.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/olm.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
