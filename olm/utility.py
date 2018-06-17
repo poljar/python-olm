@@ -24,7 +24,7 @@ from builtins import bytes
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
 
-from .finalize import track_for_finalization
+from ._finalize import track_for_finalization
 
 
 def _clear_utility(utility):  # pragma: no cover

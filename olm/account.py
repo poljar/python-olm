@@ -26,7 +26,7 @@ from future.utils import bytes_to_native_str
 from _libolm import ffi, lib  # type: ignore
 
 from ._compat import URANDOM, to_bytes
-from .finalize import track_for_finalization
+from ._finalize import track_for_finalization
 
 # This is imported only for type checking purposes
 if False:
