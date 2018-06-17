@@ -19,6 +19,8 @@ An example of the implementation of the Olm and Megolm cryptographic protocol
 can be found in the Matrix protocol for which the implementation guide can be
 found [here][6].
 
+The full API reference can be found [here][7].
+
 # Accounts
 
 Accounts create and hold the central identity of the Olm protocol, they consist of a fingerprint and identity
@@ -162,3 +164,4 @@ Pickling works the same way as for peer to peer Olm sessions.
 [4]: https://git.matrix.org/git/olm/about/docs/olm.rst
 [5]: https://git.matrix.org/git/olm/about/docs/megolm.rst
 [6]: https://matrix.org/docs/guides/e2e_implementation.html
+[7]: https://poljar.github.io/python-olm/html/index.html
