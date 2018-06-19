@@ -19,15 +19,17 @@ Examples:
 """
 
 # pylint: disable=redefined-builtin,unused-import
-from builtins import bytes
+from typing import AnyStr, Type
 
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
 
 from ._finalize import track_for_finalization
+from ._compat import to_bytes
 
 
 def _clear_utility(utility):  # pragma: no cover
+    # type: (ffi.cdata) -> None
     lib.olm_clear_utility(utility)
 
 
@@ -44,7 +46,7 @@ class _Utility(object):
 
     @classmethod
     def _allocate(cls):
-        # type: () -> None
+        # type: (Type[_Utility]) -> None
         cls._buf = ffi.new("char[]", lib.olm_utility_size())
         cls._utility = lib.olm_utility(cls._buf)
         track_for_finalization(cls, cls._utility, _clear_utility)
@@ -61,12 +63,13 @@ class _Utility(object):
 
     @classmethod
     def _ed25519_verify(cls, key, message, signature):
+        # type: (Type[_Utility], AnyStr, AnyStr, AnyStr) -> None
         if not cls._utility:
             cls._allocate()
 
-        byte_key = bytes(key, "utf-8")
-        byte_message = bytes(message, "utf-8")
-        byte_signature = bytes(signature, "utf-8")
+        byte_key = to_bytes(key)
+        byte_message = to_bytes(message)
+        byte_signature = to_bytes(signature)
 
         cls._check_error(
             lib.olm_ed25519_verify(cls._utility, byte_key, len(byte_key),
@@ -75,6 +78,7 @@ class _Utility(object):
 
 
 def ed25519_verify(key, message, signature):
+    # type: (AnyStr, AnyStr, AnyStr) -> None
     """Verify an ed25519 signature.
 
     Raises an OlmVerifyError if verification fails.
