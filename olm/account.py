@@ -18,7 +18,7 @@ Examples:
 import json
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
-from typing import AnyStr, Dict, Optional
+from typing import AnyStr, Dict, Optional, Type
 
 from future.utils import bytes_to_native_str
 
@@ -34,6 +34,7 @@ if False:
 
 
 def _clear_account(account):
+    # type: (ffi.cdata) -> None
     lib.olm_clear_account(account)
 
 
@@ -45,6 +46,7 @@ class Account(object):
     """libolm Account class."""
 
     def __new__(cls):
+        # type: (Type[Account]) -> Account
         obj = super().__new__(cls)
         obj._buf = ffi.new("char[]", lib.olm_account_size())
         obj._account = lib.olm_account(obj._buf)

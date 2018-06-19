@@ -22,7 +22,7 @@ Examples:
 
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
-from typing import AnyStr, Optional
+from typing import AnyStr, Optional, Type
 
 from future.utils import bytes_to_native_str
 
@@ -102,6 +102,7 @@ class OlmMessage(_OlmMessage):
 
 
 def _clear_session(session):
+    # type: (ffi.cdata) -> None
     lib.olm_clear_session(session)
 
 
@@ -113,7 +114,7 @@ class Session(object):
     """
 
     def __new__(cls):
-        # type: () -> Session
+        # type: (Type[Session]) -> Session
 
         obj = super().__new__(cls)
         obj._buf = ffi.new("char[]", lib.olm_session_size())
@@ -282,7 +283,7 @@ class Session(object):
 
     @property
     def id(self):
-        # type () -> str
+        # type: () -> str
         """str: An identifier for this session. Will be the same for both
         ends of the conversation.
         """
@@ -349,6 +350,7 @@ class InboundSession(Session):
     """
 
     def __new__(cls, account, message, identity_key=None):
+        # type: (Account, OlmPreKeyMessage, Optional[AnyStr]) -> Session
         return super().__new__(cls)
 
     def __init__(self, account, message, identity_key=None):
@@ -400,6 +402,7 @@ class OutboundSession(Session):
     """Outbound Olm session for p2p encrypted communication."""
 
     def __new__(cls, account, identity_key, one_time_key):
+        # type: (Account, AnyStr, AnyStr) -> Session
         return super().__new__(cls)
 
     def __init__(self, account, identity_key, one_time_key):

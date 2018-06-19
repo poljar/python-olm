@@ -14,7 +14,7 @@ Examples:
 
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
-from typing import AnyStr, Optional
+from typing import AnyStr, Optional, Type
 
 from future.utils import bytes_to_native_str
 
@@ -26,10 +26,12 @@ from ._finalize import track_for_finalization
 
 
 def _clear_inbound_group_session(session):
+    # type: (ffi.cdata) -> None
     lib.olm_clear_inbound_group_session(session)
 
 
 def _clear_outbound_group_session(session):
+    # type: (ffi.cdata) -> None
     lib.olm_clear_outbound_group_session(session)
 
 
@@ -41,6 +43,7 @@ class InboundGroupSession(object):
     """Inbound group session for encrypted multiuser communication."""
 
     def __new__(cls, session_key=None):
+        # type: (Type[InboundGroupSession], Optional[str]) -> InboundGroupSession
         obj = super().__new__(cls)
         obj._buf = ffi.new("char[]", lib.olm_inbound_group_session_size())
         obj._session = lib.olm_inbound_group_session(obj._buf)
@@ -279,6 +282,7 @@ class OutboundGroupSession(object):
     """Outbound group session for encrypted multiuser communication."""
 
     def __new__(cls):
+        # type: (Type[OutboundGroupSession]) -> OutboundGroupSession
         obj = super().__new__(cls)
         obj._buf = ffi.new("char[]", lib.olm_outbound_group_session_size())
         obj._session = lib.olm_outbound_group_session(obj._buf)
