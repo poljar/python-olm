@@ -67,6 +67,12 @@ class TestClass(object):
         inbound = InboundGroupSession(outbound.session_key)
         assert "Test", 0 == inbound.decrypt(outbound.encrypt("Test"))
 
+    def test_decrypt_twice(self):
+        outbound = OutboundGroupSession()
+        inbound = InboundGroupSession(outbound.session_key)
+        outbound.encrypt("Test 1")
+        assert "Test 2", 1 == inbound.decrypt(outbound.encrypt("Test 2"))
+
     def test_decrypt_failure(self):
         outbound = OutboundGroupSession()
         inbound = InboundGroupSession(outbound.session_key)
