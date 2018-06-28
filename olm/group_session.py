@@ -147,7 +147,7 @@ class InboundGroupSession(object):
         raise OlmGroupSessionError(last_error)
 
     def decrypt(self, ciphertext):
-        # type: (AnyStr) -> str
+        # type: (AnyStr) -> str, int
         """Decrypt a message
 
         Returns the decrypted plain-text, or raises OlmGroupSessionError on
@@ -193,7 +193,7 @@ class InboundGroupSession(object):
         return bytes_to_native_str(ffi.unpack(
             plaintext_buffer,
             plaintext_length
-        ))
+        )), message_index
 
     @property
     def id(self):

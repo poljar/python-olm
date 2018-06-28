@@ -52,19 +52,19 @@ class TestClass(object):
         imported = InboundGroupSession.import_session(
             inbound.export_session(inbound.first_known_index)
         )
-        assert "Test" == imported.decrypt(outbound.encrypt("Test"))
+        assert "Test", 0 == imported.decrypt(outbound.encrypt("Test"))
 
     def test_encrypt(self, benchmark):
         benchmark.weave(OutboundGroupSession.encrypt, lazy=True)
         outbound = OutboundGroupSession()
         inbound = InboundGroupSession(outbound.session_key)
-        assert "Test" == inbound.decrypt(outbound.encrypt("Test"))
+        assert "Test", 0 == inbound.decrypt(outbound.encrypt("Test"))
 
     def test_decrypt(self, benchmark):
         benchmark.weave(InboundGroupSession.decrypt, lazy=True)
         outbound = OutboundGroupSession()
         inbound = InboundGroupSession(outbound.session_key)
-        assert "Test" == inbound.decrypt(outbound.encrypt("Test"))
+        assert "Test", 0 == inbound.decrypt(outbound.encrypt("Test"))
 
     def test_decrypt_failure(self):
         outbound = OutboundGroupSession()
