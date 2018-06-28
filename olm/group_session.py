@@ -14,7 +14,7 @@ Examples:
 
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
-from typing import AnyStr, Optional, Type
+from typing import AnyStr, Optional, Type, Tuple
 
 from future.utils import bytes_to_native_str
 
@@ -147,7 +147,7 @@ class InboundGroupSession(object):
         raise OlmGroupSessionError(last_error)
 
     def decrypt(self, ciphertext):
-        # type: (AnyStr) -> str, int
+        # type: (AnyStr) -> Tuple[str, int]
         """Decrypt a message
 
         Returns a tuple of the decrypted plain-text and the message index of
