@@ -150,8 +150,8 @@ class InboundGroupSession(object):
         # type: (AnyStr) -> str, int
         """Decrypt a message
 
-        Returns the decrypted plain-text, or raises OlmGroupSessionError on
-        failure.
+        Returns a tuple of the decrypted plain-text and the message index of
+        the decrypted message or raises OlmGroupSessionError on failure.
         On failure the error message of the exception  will be:
 
         * OLM_INVALID_BASE64         if the message is not valid base-64
