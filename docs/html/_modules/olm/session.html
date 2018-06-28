@@ -54,7 +54,7 @@
 
 <span class="c1"># pylint: disable=redefined-builtin,unused-import</span>
 <span class="kn">from</span> <span class="nn">builtins</span> <span class="k">import</span> <span class="nb">bytes</span><span class="p">,</span> <span class="nb">super</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Type</span>
 
 <span class="kn">from</span> <span class="nn">future.utils</span> <span class="k">import</span> <span class="n">bytes_to_native_str</span>
 
@@ -134,6 +134,7 @@
 
 
 <span class="k">def</span> <span class="nf">_clear_session</span><span class="p">(</span><span class="n">session</span><span class="p">):</span>
+    <span class="c1"># type: (ffi.cdata) -&gt; None</span>
     <span class="n">lib</span><span class="o">.</span><span class="n">olm_clear_session</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
 
 
@@ -145,7 +146,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="c1"># type: () -&gt; Session</span>
+        <span class="c1"># type: (Type[Session]) -&gt; Session</span>
 
         <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">_buf</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_session_size</span><span class="p">())</span>
@@ -314,7 +315,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># type () -&gt; str</span>
+        <span class="c1"># type: () -&gt; str</span>
         <span class="sd">&quot;&quot;&quot;str: An identifier for this session. Will be the same for both</span>
 <span class="sd">        ends of the conversation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -381,6 +382,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">account</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">identity_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># type: (Account, OlmPreKeyMessage, Optional[AnyStr]) -&gt; Session</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">account</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">identity_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -432,6 +434,7 @@
     <span class="sd">&quot;&quot;&quot;Outbound Olm session for p2p encrypted communication.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">account</span><span class="p">,</span> <span class="n">identity_key</span><span class="p">,</span> <span class="n">one_time_key</span><span class="p">):</span>
+        <span class="c1"># type: (Account, AnyStr, AnyStr) -&gt; Session</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">account</span><span class="p">,</span> <span class="n">identity_key</span><span class="p">,</span> <span class="n">one_time_key</span><span class="p">):</span>

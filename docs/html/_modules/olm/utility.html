@@ -51,15 +51,17 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="c1"># pylint: disable=redefined-builtin,unused-import</span>
-<span class="kn">from</span> <span class="nn">builtins</span> <span class="k">import</span> <span class="nb">bytes</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">Type</span>
 
 <span class="c1"># pylint: disable=no-name-in-module</span>
 <span class="kn">from</span> <span class="nn">_libolm</span> <span class="k">import</span> <span class="n">ffi</span><span class="p">,</span> <span class="n">lib</span>  <span class="c1"># type: ignore</span>
 
+<span class="kn">from</span> <span class="nn">._compat</span> <span class="k">import</span> <span class="n">to_bytes</span>
 <span class="kn">from</span> <span class="nn">._finalize</span> <span class="k">import</span> <span class="n">track_for_finalization</span>
 
 
 <span class="k">def</span> <span class="nf">_clear_utility</span><span class="p">(</span><span class="n">utility</span><span class="p">):</span>  <span class="c1"># pragma: no cover</span>
+    <span class="c1"># type: (ffi.cdata) -&gt; None</span>
     <span class="n">lib</span><span class="o">.</span><span class="n">olm_clear_utility</span><span class="p">(</span><span class="n">utility</span><span class="p">)</span>
 
 
@@ -76,7 +78,7 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_allocate</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="c1"># type: () -&gt; None</span>
+        <span class="c1"># type: (Type[_Utility]) -&gt; None</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_buf</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_utility_size</span><span class="p">())</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_utility</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_utility</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_buf</span><span class="p">)</span>
         <span class="n">track_for_finalization</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_utility</span><span class="p">,</span> <span class="n">_clear_utility</span><span class="p">)</span>
@@ -93,12 +95,13 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_ed25519_verify</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">signature</span><span class="p">):</span>
+        <span class="c1"># type: (Type[_Utility], AnyStr, AnyStr, AnyStr) -&gt; None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_utility</span><span class="p">:</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">_allocate</span><span class="p">()</span>
 
-        <span class="n">byte_key</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
-        <span class="n">byte_message</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
-        <span class="n">byte_signature</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">signature</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="n">byte_key</span> <span class="o">=</span> <span class="n">to_bytes</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">byte_message</span> <span class="o">=</span> <span class="n">to_bytes</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="n">byte_signature</span> <span class="o">=</span> <span class="n">to_bytes</span><span class="p">(</span><span class="n">signature</span><span class="p">)</span>
 
         <span class="bp">cls</span><span class="o">.</span><span class="n">_check_error</span><span class="p">(</span>
             <span class="n">lib</span><span class="o">.</span><span class="n">olm_ed25519_verify</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_utility</span><span class="p">,</span> <span class="n">byte_key</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_key</span><span class="p">),</span>
@@ -107,6 +110,7 @@
 
 
 <div class="viewcode-block" id="ed25519_verify"><a class="viewcode-back" href="../../olm.html#olm.utility.ed25519_verify">[docs]</a><span class="k">def</span> <span class="nf">ed25519_verify</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">signature</span><span class="p">):</span>
+    <span class="c1"># type: (AnyStr, AnyStr, AnyStr) -&gt; None</span>
     <span class="sd">&quot;&quot;&quot;Verify an ed25519 signature.</span>
 
 <span class="sd">    Raises an OlmVerifyError if verification fails.</span>

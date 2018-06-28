@@ -50,7 +50,7 @@
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="c1"># pylint: disable=redefined-builtin,unused-import</span>
 <span class="kn">from</span> <span class="nn">builtins</span> <span class="k">import</span> <span class="nb">bytes</span><span class="p">,</span> <span class="nb">super</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Type</span>
 
 <span class="kn">from</span> <span class="nn">future.utils</span> <span class="k">import</span> <span class="n">bytes_to_native_str</span>
 
@@ -66,6 +66,7 @@
 
 
 <span class="k">def</span> <span class="nf">_clear_account</span><span class="p">(</span><span class="n">account</span><span class="p">):</span>
+    <span class="c1"># type: (ffi.cdata) -&gt; None</span>
     <span class="n">lib</span><span class="o">.</span><span class="n">olm_clear_account</span><span class="p">(</span><span class="n">account</span><span class="p">)</span>
 
 
@@ -77,6 +78,7 @@
     <span class="sd">&quot;&quot;&quot;libolm Account class.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="c1"># type: (Type[Account]) -&gt; Account</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">_buf</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_account_size</span><span class="p">())</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">_account</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_account</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">_buf</span><span class="p">)</span>

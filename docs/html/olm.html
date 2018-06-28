@@ -205,8 +205,8 @@ classes for creating inbound and outbound group sessions.</p>
 <dt id="olm.group_session.InboundGroupSession.decrypt">
 <code class="descname">decrypt</code><span class="sig-paren">(</span><em>ciphertext</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/olm/group_session.html#InboundGroupSession.decrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#olm.group_session.InboundGroupSession.decrypt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decrypt a message</p>
-<p>Returns the decrypted plain-text, or raises OlmGroupSessionError on
-failure.
+<p>Returns a tuple of the decrypted plain-text and the message index of
+the decrypted message or raises OlmGroupSessionError on failure.
 On failure the error message of the exception  will be:</p>
 <ul class="simple">
 <li>OLM_INVALID_BASE64         if the message is not valid base-64</li>

@@ -46,7 +46,7 @@
 
 <span class="c1"># pylint: disable=redefined-builtin,unused-import</span>
 <span class="kn">from</span> <span class="nn">builtins</span> <span class="k">import</span> <span class="nb">bytes</span><span class="p">,</span> <span class="nb">super</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">AnyStr</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Type</span>
 
 <span class="kn">from</span> <span class="nn">future.utils</span> <span class="k">import</span> <span class="n">bytes_to_native_str</span>
 
@@ -58,10 +58,12 @@
 
 
 <span class="k">def</span> <span class="nf">_clear_inbound_group_session</span><span class="p">(</span><span class="n">session</span><span class="p">):</span>
+    <span class="c1"># type: (ffi.cdata) -&gt; None</span>
     <span class="n">lib</span><span class="o">.</span><span class="n">olm_clear_inbound_group_session</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_clear_outbound_group_session</span><span class="p">(</span><span class="n">session</span><span class="p">):</span>
+    <span class="c1"># type: (ffi.cdata) -&gt; None</span>
     <span class="n">lib</span><span class="o">.</span><span class="n">olm_clear_outbound_group_session</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
 
 
@@ -73,6 +75,7 @@
     <span class="sd">&quot;&quot;&quot;Inbound group session for encrypted multiuser communication.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">session_key</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># type: (Type[InboundGroupSession], Optional[str]) -&gt; InboundGroupSession</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">_buf</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_inbound_group_session_size</span><span class="p">())</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">_session</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_inbound_group_session</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">_buf</span><span class="p">)</span>
@@ -176,11 +179,11 @@
         <span class="k">raise</span> <span class="n">OlmGroupSessionError</span><span class="p">(</span><span class="n">last_error</span><span class="p">)</span>
 
 <div class="viewcode-block" id="InboundGroupSession.decrypt"><a class="viewcode-back" href="../../olm.html#olm.group_session.InboundGroupSession.decrypt">[docs]</a>    <span class="k">def</span> <span class="nf">decrypt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ciphertext</span><span class="p">):</span>
-        <span class="c1"># type: (AnyStr) -&gt; str</span>
+        <span class="c1"># type: (AnyStr) -&gt; str, int</span>
         <span class="sd">&quot;&quot;&quot;Decrypt a message</span>
 
-<span class="sd">        Returns the decrypted plain-text, or raises OlmGroupSessionError on</span>
-<span class="sd">        failure.</span>
+<span class="sd">        Returns a tuple of the decrypted plain-text and the message index of</span>
+<span class="sd">        the decrypted message or raises OlmGroupSessionError on failure.</span>
 <span class="sd">        On failure the error message of the exception  will be:</span>
 
 <span class="sd">        * OLM_INVALID_BASE64         if the message is not valid base-64</span>
@@ -222,7 +225,7 @@
         <span class="k">return</span> <span class="n">bytes_to_native_str</span><span class="p">(</span><span class="n">ffi</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span>
             <span class="n">plaintext_buffer</span><span class="p">,</span>
             <span class="n">plaintext_length</span>
-        <span class="p">))</span></div>
+        <span class="p">)),</span> <span class="n">message_index</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -311,6 +314,7 @@
     <span class="sd">&quot;&quot;&quot;Outbound group session for encrypted multiuser communication.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="c1"># type: (Type[OutboundGroupSession]) -&gt; OutboundGroupSession</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">_buf</span> <span class="o">=</span> <span class="n">ffi</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;char[]&quot;</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_outbound_group_session_size</span><span class="p">())</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">_session</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">olm_outbound_group_session</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">_buf</span><span class="p">)</span>
