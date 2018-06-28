@@ -1,4 +1,5 @@
 import pytest
+
 from olm import (Account, InboundSession, OlmMessage, OlmPreKeyMessage,
                  OlmSessionError, OutboundSession, Session)
 

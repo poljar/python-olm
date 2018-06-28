@@ -3,6 +3,7 @@ from builtins import int
 import pytest
 from hypothesis import given
 from hypothesis.strategies import text
+
 from olm import Account, OlmAccountError, OlmVerifyError, ed25519_verify
 from olm._compat import to_bytes
 
