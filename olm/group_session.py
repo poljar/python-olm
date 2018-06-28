@@ -193,7 +193,7 @@ class InboundGroupSession(object):
         return bytes_to_native_str(ffi.unpack(
             plaintext_buffer,
             plaintext_length
-        )), message_index
+        )), message_index[0]
 
     @property
     def id(self):

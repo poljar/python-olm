@@ -55,6 +55,12 @@ class TestClass(object):
         )
         assert "Test", 0 == imported.decrypt(outbound.encrypt("Test"))
 
+    def test_first_index(self):
+        outbound = OutboundGroupSession()
+        inbound = InboundGroupSession(outbound.session_key)
+        index = inbound.first_known_index
+        assert isinstance(index, int)
+
     def test_encrypt(self, benchmark):
         benchmark.weave(OutboundGroupSession.encrypt, lazy=True)
         outbound = OutboundGroupSession()
@@ -71,7 +77,9 @@ class TestClass(object):
         outbound = OutboundGroupSession()
         inbound = InboundGroupSession(outbound.session_key)
         outbound.encrypt("Test 1")
-        assert "Test 2", 1 == inbound.decrypt(outbound.encrypt("Test 2"))
+        message, index = inbound.decrypt(outbound.encrypt("Test 2"))
+        assert isinstance(index, int)
+        assert ("Test 2", 1) == (message, index)
 
     def test_decrypt_failure(self):
         outbound = OutboundGroupSession()
