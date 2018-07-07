@@ -147,7 +147,7 @@ sessions).
 ```python
 >>> message = alice_group.encrypt("It's a secret to everybody")
 >>> bob_inbound_group.decrypt(message)
-"It's a secret to everybody"
+("It's a secret to everybody", 0)
 ```
 
 ## Pickling
