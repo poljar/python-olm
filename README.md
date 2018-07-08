@@ -122,26 +122,26 @@ accounts.
 
 # Group Sessions
 
-Group Sessions are used to create a one to many encrypted communication channel.
-The group session key needs to shared with all participants for them to be able
-to decrypt messages. Another thing to notice, the group session key is ratcheted
-every time a message is encrypted, the session key should be shared before any
-messages are encrypted.
+Group Sessions are used to create a one-to-many encrypted communication channel.
+The group session key needs to be shared with all participants that should be able
+to decrypt the group messages. Another thing to notice is that, since the group
+session key is ratcheted every time a message is encrypted, the session key should
+be shared before any messages are encrypted.
 
 ## Group Session Creation
 
-Group sessions aren't bound to an account like peer to peer sessions so their
+Group sessions aren't bound to an account like peer-to-peer sessions so their
 creation is straightforward.
 
 ```python
 >>> alice_group = OutboundGroupSession()
->>> bob_inbound_group = InboundGroupSession(alice.sesion_key)
+>>> bob_inbound_group = InboundGroupSession(alice_group.session_key)
 ```
 
 ## Group Encryption
 
 Group encryption is pretty simple. The important part is to share the session
-key with all participants over a secure channel (e.g. peer to peer Olm
+key with all participants over a secure channel (e.g. peer-to-peer Olm
 sessions).
 
 ```python
@@ -152,7 +152,7 @@ sessions).
 
 ## Pickling
 
-Pickling works the same way as for peer to peer Olm sessions.
+Pickling works the same way as for peer-to-peer Olm sessions.
 
 ```python
 >>> pickle = session.pickle()

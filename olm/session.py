@@ -6,7 +6,7 @@
 
 This module contains the Olm Session part of the Olm library.
 
-It is used to establish a peer to peer encrypted communication channel between
+It is used to establish a peer-to-peer encrypted communication channel between
 two Olm accounts.
 
 Examples:
@@ -16,7 +16,6 @@ Examples:
     >>> id_key = bob.identity_keys['curve25519']
     >>> one_time = list(bob.one_time_keys["curve25519"].values())[0]
     >>> session = OutboundSession(alice, id_key, one_time)
-    >>> s = OutboundSession(alice, id_key, one_time)
 
 """
 
@@ -72,7 +71,7 @@ class OlmPreKeyMessage(_OlmMessage):
 
     def __init__(self, ciphertext):
         # type: (AnyStr) -> None
-        """Create a new olm prekey message with the supplied ciphertext
+        """Create a new Olm prekey message with the supplied ciphertext
 
         Args:
             ciphertext(str): The ciphertext of the prekey message.
@@ -89,7 +88,7 @@ class OlmMessage(_OlmMessage):
 
     def __init__(self, ciphertext):
         # type: (AnyStr) -> None
-        """Create a new olm message with the supplied ciphertext
+        """Create a new Olm message with the supplied ciphertext
 
         Args:
             ciphertext(str): The ciphertext of the message.
@@ -142,7 +141,7 @@ class Session(object):
 
     def pickle(self, passphrase=""):
         # type: (Optional[str]) -> bytes
-        """Store a olm session.
+        """Store an Olm session.
 
         Stores a session as a base64 string. Encrypts the session using the
         supplied passphrase. Returns a byte object containing the base64
@@ -167,7 +166,7 @@ class Session(object):
     @classmethod
     def from_pickle(cls, pickle, passphrase=""):
         # type: (bytes, Optional[str]) -> Session
-        """Load an previously stored olm session.
+        """Load a previously stored Olm session.
 
         Loads a session from a pickled base64 string and returns a Session
         object. Decrypts the session using the supplied passphrase. Raises
@@ -200,8 +199,8 @@ class Session(object):
 
     def encrypt(self, plaintext):
         # type: (AnyStr) -> _OlmMessage
-        """Encrypts a message using the session. Returns the ciphertext as an
-        base64 encoded strin on success. Raises OlmSessionError on failure. If
+        """Encrypts a message using the session. Returns the ciphertext as a
+        base64 encoded string on success. Raises OlmSessionError on failure. If
         there weren't enough random bytes to encrypt the message the error
         message for the exception will be NOT_ENOUGH_RANDOM.
 
@@ -259,7 +258,7 @@ class Session(object):
 
         Args:
             message(OlmMessage): The Olm message that will be decrypted. It can
-            be either a OlmPreKeyMessage or a OlmMessage.
+            be either an OlmPreKeyMessage or an OlmMessage.
         """
         if not message.ciphertext:
             raise ValueError("Ciphertext can't be empty")
@@ -355,7 +354,7 @@ class InboundSession(Session):
 
     def __init__(self, account, message, identity_key=None):
         # type: (Account, OlmPreKeyMessage, Optional[AnyStr]) -> None
-        """Create a new inbound olm session.
+        """Create a new inbound Olm session.
 
         Create a new in-bound session for sending/receiving messages from an
         incoming prekey message. Raises OlmSessionError on failure. If the
@@ -363,7 +362,7 @@ class InboundSession(Session):
         If the message was for an unsupported protocol version then
         the errror message will be "BAD_MESSAGE_VERSION". If the message
         couldn't be decoded then then the error message will be
-        "BAD_MESSAGE_FORMAT". If the message refers to an unknown one time
+        "BAD_MESSAGE_FORMAT". If the message refers to an unknown one-time
         key then the error message will be "BAD_MESSAGE_KEY_ID".
 
         Args:
@@ -407,10 +406,10 @@ class OutboundSession(Session):
 
     def __init__(self, account, identity_key, one_time_key):
         # type: (Account, AnyStr, AnyStr) -> None
-        """Create a new outbound olm session.
+        """Create a new outbound Olm session.
 
-        Creates a new out-bound session for sending messages to a given
-        identity key and one time_key.
+        Creates a new outbound session for sending messages to a given
+        identity key and one-time key.
 
         Raises OlmSessionError on failure. If the keys couldn't be decoded as
         base64 then the error message will be "INVALID_BASE64". If there
@@ -422,14 +421,14 @@ class OutboundSession(Session):
                 session.
             identity_key(str): The identity key of the person with whom we want
                 to start the session.
-            one_time_key(str): A one time key from the person with whom we want
+            one_time_key(str): A one-time key from the person with whom we want
                 to start the session.
         """
         if not identity_key:
             raise ValueError("Identity key can't be empty")
 
         if not one_time_key:
-            raise ValueError("One time key can't be empty")
+            raise ValueError("One-time key can't be empty")
 
         super().__init__()
 

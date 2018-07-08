@@ -4,7 +4,7 @@
 # Copyright © 2018 Damir Jelić <poljar@termina.org.uk>
 """libolm Account module.
 
-This module contains the account part of the olm library. It contains a single
+This module contains the account part of the Olm library. It contains a single
 Account class which handles the creation of new accounts as well as the storing
 and restoring of them.
 
@@ -55,7 +55,7 @@ class Account(object):
 
     def __init__(self):
         # type: () -> None
-        """Create a new olm account.
+        """Create a new Olm account.
 
         Creates a new account and its matching identity key pair.
 
@@ -88,7 +88,7 @@ class Account(object):
 
     def pickle(self, passphrase=""):
         # type: (Optional[str]) -> bytes
-        """Store an olm account.
+        """Store an Olm account.
 
         Stores an account as a base64 string. Encrypts the account using the
         supplied passphrase. Returns a byte object containing the base64
@@ -113,12 +113,12 @@ class Account(object):
     @classmethod
     def from_pickle(cls, pickle, passphrase=""):
         # type: (bytes, Optional[str]) -> Account
-        """Load an previously stored olm account.
+        """Load a previously stored olm account.
 
-        Loads an account from a pickled base64 string and returns an Account
-        object. Decrypts the account using the supplied passphrase. Raises
-        OlmAccountError on failure. If the passphrase doesn't match the one
-        used to encrypt the account then the error message for the
+        Loads an account from a pickled base64-encoded string and returns an
+        Account object. Decrypts the account using the supplied passphrase.
+        Raises OlmAccountError on failure. If the passphrase doesn't match the
+        one used to encrypt the account then the error message for the
         exception will be "BAD_ACCOUNT_KEY". If the base64 couldn't be decoded
         then the error message will be "INVALID_BASE64".
 
@@ -180,17 +180,17 @@ class Account(object):
     @property
     def max_one_time_keys(self):
         # type: () -> int
-        """int: The maximum number of one time keys the account can store."""
+        """int: The maximum number of one-time keys the account can store."""
         return lib.olm_account_max_number_of_one_time_keys(self._account)
 
     def mark_keys_as_published(self):
         # type: () -> None
-        """Mark the current set of one time keys as being published."""
+        """Mark the current set of one-time keys as being published."""
         lib.olm_account_mark_keys_as_published(self._account)
 
     def generate_one_time_keys(self, count):
         # type: (int) -> None
-        """Generate a number of new one time keys.
+        """Generate a number of new one-time keys.
 
         If the total number of keys stored by this account exceeds
         max_one_time_keys() then the old keys are discarded.
@@ -212,7 +212,7 @@ class Account(object):
     @property
     def one_time_keys(self):
         # type: () -> Dict[str, Dict[str, str]]
-        """dict: The public part of the one time keys for this account."""
+        """dict: The public part of the one-time keys for this account."""
         out_length = lib.olm_account_one_time_keys_length(self._account)
         out_buffer = ffi.new("char[]", out_length)
 
@@ -224,11 +224,11 @@ class Account(object):
 
     def remove_one_time_keys(self, session):
         # type: (Session) -> None
-        """Remove used one time keys.
+        """Remove used one-time keys.
 
-        Removes the one time keys that the session used from the account.
+        Removes the one-time keys that the session used from the account.
         Raises OlmAccountError on failure. If the account doesn't have any
-        matching one time keys then the error message of the exception will be
+        matching one-time keys then the error message of the exception will be
         "BAD_MESSAGE_KEY_ID".
 
         Args:

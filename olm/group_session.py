@@ -14,7 +14,7 @@ Examples:
 
 # pylint: disable=redefined-builtin,unused-import
 from builtins import bytes, super
-from typing import AnyStr, Optional, Type, Tuple
+from typing import AnyStr, Optional, Tuple, Type
 
 from future.utils import bytes_to_native_str
 
@@ -42,8 +42,11 @@ class OlmGroupSessionError(Exception):
 class InboundGroupSession(object):
     """Inbound group session for encrypted multiuser communication."""
 
-    def __new__(cls, session_key=None):
-        # type: (Type[InboundGroupSession], Optional[str]) -> InboundGroupSession
+    def __new__(
+        cls,              # type: Type[InboundGroupSession]
+        session_key=None  # type: Optional[str]
+    ):
+        # type: (...) -> InboundGroupSession
         obj = super().__new__(cls)
         obj._buf = ffi.new("char[]", lib.olm_inbound_group_session_size())
         obj._session = lib.olm_inbound_group_session(obj._buf)
@@ -54,7 +57,7 @@ class InboundGroupSession(object):
         # type: (AnyStr) -> None
         """Create a new inbound group session.
         Start a new inbound group session, from a key exported from
-        a outbound group session.
+        an outbound group session.
 
         Raises OlmGroupSessionError on failure. The error message of the
         exception will be "OLM_INVALID_BASE64" if the session key is not valid
@@ -104,8 +107,8 @@ class InboundGroupSession(object):
         # type: (bytes, Optional[str]) -> InboundGroupSession
         """Load a previously stored inbound group session.
 
-        Loads a inbound group session from a pickled base64 string and returns
-        a InboundGroupSession object. Decrypts the session using the supplied
+        Loads an inbound group session from a pickled base64 string and returns
+        an InboundGroupSession object. Decrypts the session using the supplied
         passphrase. Raises OlmSessionError on failure. If the passphrase
         doesn't match the one used to encrypt the session then the error
         message for the exception will be "BAD_ACCOUNT_KEY". If the base64
@@ -115,6 +118,7 @@ class InboundGroupSession(object):
             pickle(bytes): Base64 encoded byte string containing the pickled
                 session
             passphrase(str, optional): The passphrase used to encrypt the
+                session
         """
         if not pickle:
             raise ValueError("Pickle can't be empty")
@@ -154,14 +158,14 @@ class InboundGroupSession(object):
         the decrypted message or raises OlmGroupSessionError on failure.
         On failure the error message of the exception  will be:
 
-        * OLM_INVALID_BASE64         if the message is not valid base-64
+        * OLM_INVALID_BASE64         if the message is not valid base64
         * OLM_BAD_MESSAGE_VERSION    if the message was encrypted with an
             unsupported version of the protocol
         * OLM_BAD_MESSAGE_FORMAT     if the message headers could not be
             decoded
         * OLM_BAD_MESSAGE_MAC        if the message could not be verified
         * OLM_UNKNOWN_MESSAGE_INDEX  if we do not have a session key
-            corresponding to the message's index (ie, it was sent before
+            corresponding to the message's index (i.e., it was sent before
             the session key was shared with us)
 
         Args:
@@ -250,9 +254,9 @@ class InboundGroupSession(object):
     @classmethod
     def import_session(cls, session_key):
         # type: (AnyStr) -> InboundGroupSession
-        """Create a InboundGroupSession from an exported session key.
+        """Create an InboundGroupSession from an exported session key.
 
-        Creates a InboundGroupSession with an previously exported session key,
+        Creates an InboundGroupSession with an previously exported session key,
         raises OlmGroupSessionError on failure. The error message for the
         exception will be:
 
@@ -356,12 +360,13 @@ class OutboundGroupSession(object):
         # type: (bytes, Optional[str]) -> OutboundGroupSession
         """Load a previously stored outbound group session.
 
-        Loads a outbound group session from a pickled base64 string and returns
-        a OutboundGroupSession object. Decrypts the session using the supplied
-        passphrase. Raises OlmSessionError on failure. If the passphrase
-        doesn't match the one used to encrypt the session then the error
-        message for the exception will be "BAD_ACCOUNT_KEY". If the base64
-        couldn't be decoded then the error message will be "INVALID_BASE64".
+        Loads an outbound group session from a pickled base64 string and
+        returns an OutboundGroupSession object. Decrypts the session using the
+        supplied passphrase. Raises OlmSessionError on failure. If the
+        passphrase doesn't match the one used to encrypt the session then the
+        error message for the exception will be "BAD_ACCOUNT_KEY". If the
+        base64 couldn't be decoded then the error message will be
+        "INVALID_BASE64".
 
         Args:
             pickle(bytes): Base64 encoded byte string containing the pickled
