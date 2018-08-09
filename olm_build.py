@@ -22,7 +22,7 @@ import os
 from cffi import FFI
 
 ffibuilder = FFI()
-PATH = os.path.dirname(__file__)
+PATH = os.path.dirname(os.path.abspath(__file__))
 
 
 ffibuilder.set_source(
