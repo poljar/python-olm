@@ -25,3 +25,25 @@ class TestClass(object):
         message.ephermal_key = "?"
         with pytest.raises(PkDecryptionError):
             decryption.decrypt(message)
+
+    def test_pickling(self):
+        decryption = PkDecryption()
+        encryption = PkEncryption(decryption.public_key)
+        plaintext = "It's a secret to everybody."
+        message = encryption.encrypt(plaintext)
+
+        pickle = decryption.pickle()
+        unpickled = PkDecryption.from_pickle(pickle)
+        decrypted_plaintext = unpickled.decrypt(message)
+        assert plaintext == decrypted_plaintext
+
+    def test_invalid_unpickling(self):
+        with pytest.raises(ValueError):
+            PkDecryption.from_pickle("")
+
+    def test_invalid_pass_pickling(self):
+        decryption = PkDecryption()
+        pickle = decryption.pickle("Secret")
+
+        with pytest.raises(PkDecryptionError):
+            PkDecryption.from_pickle(pickle, "Not secret")

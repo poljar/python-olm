@@ -114,6 +114,7 @@ class PkDecryption(object):
         obj = super().__new__(cls)
         obj._buf = ffi.new("char[]", lib.olm_pk_decryption_size())
         obj._pk_decryption = lib.olm_pk_decryption(obj._buf)
+        obj.public_key = None
         track_for_finalization(obj, obj._pk_decryption, _clear_pk_decryption)
         return obj
 
@@ -148,6 +149,55 @@ class PkDecryption(object):
             ffi.string(lib.olm_pk_decryption_last_error(self._pk_decryption)))
 
         raise PkDecryptionError(last_error)
+
+    def pickle(self, passphrase=""):
+        # type: (str) -> bytes
+        byte_key = to_bytes(passphrase)
+        key_buffer = ffi.new("char[]", byte_key)
+
+        pickle_length = lib.olm_pickle_pk_decryption_length(
+            self._pk_decryption
+        )
+        pickle_buffer = ffi.new("char[]", pickle_length)
+
+        ret = lib.olm_pickle_pk_decryption(
+            self._pk_decryption,
+            key_buffer, len(byte_key),
+            pickle_buffer, pickle_length
+        )
+        self._check_error(ret)
+
+        return ffi.unpack(pickle_buffer, pickle_length)
+
+    @classmethod
+    def from_pickle(cls, pickle, passphrase=""):
+        # types: (bytes, str) -> PkDecryption
+        if not pickle:
+            raise ValueError("Pickle can't be empty")
+
+        byte_key = to_bytes(passphrase)
+        key_buffer = ffi.new("char[]", byte_key)
+        pickle_buffer = ffi.new("char[]", pickle)
+
+        pubkey_length = lib.olm_pk_key_length()
+        pubkey_buffer = ffi.new("char[]", pubkey_length)
+
+        obj = cls.__new__(cls)
+
+        ret = lib.olm_unpickle_pk_decryption(
+            obj._pk_decryption,
+            key_buffer, len(byte_key),
+            pickle_buffer, len(pickle),
+            pubkey_buffer, pubkey_length)
+
+        obj._check_error(ret)
+
+        obj.public_key = bytes_to_native_str(ffi.unpack(
+            pubkey_buffer,
+            pubkey_length
+        ))
+
+        return obj
 
     def decrypt(self, message):
         # type (PkMessage) -> str
