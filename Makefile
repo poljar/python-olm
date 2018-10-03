@@ -15,6 +15,9 @@ test: develop py2develop
 	python3 -m pytest --isort --benchmark-disable
 	python3 -m pytest --cov --cov-branch --benchmark-disable
 
+typecheck:
+	mypy -p olm --ignore-missing-imports --warn-redundant-casts
+
 clean:
 	-rm -r python_olm.egg-info/ dist/ __pycache__/
 	-rm *.so _libolm.o
