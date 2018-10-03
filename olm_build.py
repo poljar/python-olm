@@ -31,9 +31,13 @@ ffibuilder.set_source(
         #include <olm/olm.h>
         #include <olm/inbound_group_session.h>
         #include <olm/outbound_group_session.h>
+        #include <olm/pk.h>
     """, libraries=["olm"])
 
 with open(os.path.join(PATH, "include/olm/olm.h")) as f:
+    ffibuilder.cdef(f.read(), override=True)
+
+with open(os.path.join(PATH, "include/olm/pk.h")) as f:
     ffibuilder.cdef(f.read(), override=True)
 
 if __name__ == "__main__":
