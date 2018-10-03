@@ -9,7 +9,7 @@ Examples:
 """
 
 from builtins import super
-from typing import AnyStr, Dict, Optional, Type
+from typing import AnyStr, Type
 from future.utils import bytes_to_native_str
 
 from _libolm import ffi, lib  # type: ignore
