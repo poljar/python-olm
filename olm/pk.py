@@ -38,16 +38,16 @@ class PkMessage(object):
 
 
 class PkEncryption(object):
-    def __init__(self, recepient_key):
+    def __init__(self, recipient_key):
         # type: (AnyStr) -> None
-        if not recepient_key:
-            raise ValueError("Recepeint key can't be empty")
+        if not recipient_key:
+            raise ValueError("Recipient key can't be empty")
 
         self._buf = ffi.new("char[]", lib.olm_pk_encryption_size())
         self._pk_encryption = lib.olm_pk_encryption(self._buf)
         track_for_finalization(self, self._pk_encryption, _clear_pk_encryption)
 
-        byte_key = to_bytes(recepient_key)
+        byte_key = to_bytes(recipient_key)
         lib.olm_pk_encryption_set_recipient_key(
             self._pk_encryption,
             byte_key,
