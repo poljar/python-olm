@@ -1,3 +1,4 @@
 include include/olm/olm.h
+include include/olm/pk.h
 include Makefile
 include olm_build.py
