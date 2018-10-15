@@ -36,7 +36,7 @@ _libolm.o: include/olm/olm.h olm_build.py
 	-rm _libolm.c
 
 archpkg:
-	$(PYTHON) setup.py sdist --dist-dir packages
+	umask 0022 && $(PYTHON) setup.py sdist --dist-dir packages
 	cp contrib/archlinux/pkgbuild/PKGBUILD packages
 	cd packages && makepkg
 
