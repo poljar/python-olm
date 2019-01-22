@@ -22,3 +22,12 @@ def to_bytes(string):
         return bytes(string, "utf-8")
 
     raise TypeError("Invalid type {}".format(type(string)))
+
+def to_bytearray(string):
+    # type: (AnyStr) -> bytes
+    if isinstance(string, bytes):
+        return bytearray(string)
+    elif isinstance(string, str):
+        return bytearray(string, "utf-8")
+
+    raise TypeError("Invalid type {}".format(type(string)))

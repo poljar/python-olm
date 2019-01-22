@@ -24,7 +24,7 @@ from typing import AnyStr, Type
 # pylint: disable=no-name-in-module
 from _libolm import ffi, lib  # type: ignore
 
-from ._compat import to_bytes
+from ._compat import to_bytes, to_bytearray
 from ._finalize import track_for_finalization
 
 
@@ -68,13 +68,13 @@ class _Utility(object):
             cls._allocate()
 
         byte_key = to_bytes(key)
-        byte_message = to_bytes(message)
-        byte_signature = to_bytes(signature)
+        byte_message = to_bytearray(message)
+        byte_signature = to_bytearray(signature)
 
         cls._check_error(
             lib.olm_ed25519_verify(cls._utility, byte_key, len(byte_key),
-                                   byte_message, len(byte_message),
-                                   byte_signature, len(byte_signature)))
+                                   ffi.from_buffer(byte_message), len(byte_message),
+                                   ffi.from_buffer(byte_signature), len(byte_signature)))
 
 
 def ed25519_verify(key, message, signature):
