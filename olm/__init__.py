@@ -31,3 +31,4 @@ from .pk import (
     PkEncryptionError,
     PkDecryptionError
 )
+from .sas import Sas, OlmSasError
