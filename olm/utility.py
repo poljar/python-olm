@@ -58,7 +58,7 @@ class _Utility(object):
 
     @classmethod
     def _check_error(cls, ret, error_class):
-        # type: (int) -> None
+        # type: (int, Type) -> None
         if ret != lib.olm_error():
             return
 
@@ -90,7 +90,7 @@ class _Utility(object):
 
     @classmethod
     def _sha256(cls, input):
-        # type: (Type[_Utility], AnyStr) -> None
+        # type: (Type[_Utility], AnyStr) -> str
         if not cls._utility:
             cls._allocate()
 
