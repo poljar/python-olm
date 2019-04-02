@@ -1,8 +1,14 @@
+import base64
+import hashlib
 from builtins import bytes
 
 import pytest
+from future.utils import bytes_to_native_str
+from hypothesis import given
+from hypothesis.strategies import text
 
-from olm import OlmSasError, Sas
+from olm import OlmSasError, Sas, sha256
+from olm._compat import to_bytes
 
 MESSAGE = "Test message"
 EXTRA_INFO = "extra_info"
@@ -80,3 +86,21 @@ class TestClass(object):
         alice_mac = sas_alice.calculate_mac(message, extra_info)
 
         assert alice_mac == expected_mac
+
+    @given(text(), text())
+    def test_sha256(self, input1, input2):
+        first_hash = sha256(input1)
+        second_hash = sha256(input2)
+
+        hashlib_hash = base64.b64encode(
+            hashlib.sha256(to_bytes(input1)).digest()
+        )
+
+        hashlib_hash = bytes_to_native_str(hashlib_hash[:-1])
+
+        if input1 == input2:
+            assert first_hash == second_hash
+        else:
+            assert first_hash != second_hash
+
+        assert hashlib_hash == first_hash
