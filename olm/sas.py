@@ -33,8 +33,9 @@ Examples:
 
 from functools import wraps
 from builtins import bytes
-from future.utils import bytes_to_native_str
 from typing import Optional
+
+from future.utils import bytes_to_native_str
 
 from _libolm import ffi, lib
 
@@ -74,8 +75,8 @@ class Sas(object):
                 as well as to calculate the MAC.
 
         Attributes:
-            other_key_set(bool): A boolean flag that tracks if we set the other
-                users public key for this SAS object.
+            other_key_set (bool): A boolean flag that tracks if we set the
+                other users public key for this SAS object.
 
         Raises OlmSasError on failure.
 
@@ -141,7 +142,7 @@ class Sas(object):
         calculated.
 
         Args:
-            key(str): The other users public key.
+            key (str): The other users public key.
 
         Raises OlmSasError on failure.
 
@@ -163,11 +164,12 @@ class Sas(object):
         """Generate bytes to use for the short authentication string.
 
         Args:
-            extra_info(str): Extra information to mix in when generating the
+            extra_info (str): Extra information to mix in when generating the
                 bytes.
-            length(int): The number of bytes to generate.
+            length (int): The number of bytes to generate.
 
-        Raises OlmSasError on failure.
+        Raises OlmSasError if the other users persons public key isn't set or
+        an internal Olm error happens.
 
         """
         if length < 1:
@@ -194,8 +196,8 @@ class Sas(object):
         """Generate a message authentication code based on the shared secret.
 
         Args:
-            message(str): The message to produce the authentication code for.
-            extra_info(str): Extra information to mix in when generating the
+            message (str): The message to produce the authentication code for.
+            extra_info (str): Extra information to mix in when generating the
                 MAC
 
         Raises OlmSasError on failure.
