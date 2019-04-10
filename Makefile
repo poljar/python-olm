@@ -36,8 +36,9 @@ _libolm.o: include/olm/olm.h olm_build.py
 	-rm _libolm.c
 
 archpkg:
+	-rm -r packages
 	umask 0022 && $(PYTHON) setup.py sdist --dist-dir packages
 	cp contrib/archlinux/pkgbuild/PKGBUILD packages
-	cd packages && makepkg
+	cd packages && makepkg -i
 
 .PHONY: all olm install clean test archpkg develop
