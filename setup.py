@@ -12,7 +12,7 @@ with open(os.path.join(here, "olm", "__version__.py"), "r", "utf-8") as f:
     exec(f.read(), about)
 
 setup(
-    name="pyhon-olm-dev",
+    name="python-olm-dev",
     version=about["__version__"],
     description=about["__description__"],
     author=about["__author__"],
