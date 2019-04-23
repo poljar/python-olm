@@ -9,7 +9,7 @@ Olm Python bindings
 |  © Copyright 2015-2017 by OpenMarket Ltd
 |  © Copyright 2018 by Damir Jelić
 """
-from .utility import ed25519_verify, OlmVerifyError
+from .utility import ed25519_verify, OlmVerifyError, OlmHashError, sha256
 from .account import Account, OlmAccountError
 from .session import (
     Session,
@@ -31,3 +31,4 @@ from .pk import (
     PkEncryptionError,
     PkDecryptionError
 )
+from .sas import Sas, OlmSasError
