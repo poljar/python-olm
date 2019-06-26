@@ -4,6 +4,8 @@ python-olm
 [![Travis Build Status](https://travis-ci.org/poljar/python-olm.svg?branch=master)](https://travis-ci.org/poljar/python-olm)
 [![Codecov Coverage Status](https://codecov.io/gh/poljar/python-olm/branch/master/graph/badge.svg)](https://codecov.io/gh/poljar/python-olm)
 
+## This has been merged into the main [Olm repo](https://gitlab.matrix.org/matrix-org/olm).
+
 Python bindings for Olm.
 
 This is a fork of the official [python bindings][2] for the Olm C library found [here][1].
